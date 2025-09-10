@@ -1,365 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Part Number Generator</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Part Number Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <!-- Farrindo Logo -->
-    <div class="farrindo-logo">
-        <img src="https://www.farrindo.co.id/wp-content/uploads/2025/01/300x39-logofarrindo2025bawahbanget.webp" alt="Farrindo Logo" width="150" height="20">
+  <!-- Logo -->
+  <div class="farrindo-logo">
+    <img src="https://www.farrindo.co.id/wp-content/uploads/2025/01/300x39-logofarrindo2025bawahbanget.webp" alt="Farrindo Logo" width="150">
+  </div>
+
+  <!-- Clock -->
+  <div class="jakarta-clock">
+    <div>Jakarta, Indonesia</div>
+    <div class="clock-time" id="jakarta-time"></div>
+    <div class="clock-date" id="jakarta-date"></div>
+  </div>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="login-modal">
+    <div class="login-content">
+      <h2>Login Required</h2>
+      <form class="login-form" onsubmit="return validateLogin()">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <div id="loginError" class="error-message">Invalid username or password</div>
     </div>
+  </div>
 
-    <!-- Unit Converter Toggle Button -->
-    <button id="converterToggle" class="converter-toggle">Unit Converter</button>
+  <!-- Main Content -->
+  <div id="mainContent" style="display: none;">
+    <div class="container">
+      <h1>System Part Number Generator</h1>
 
-    <!-- Unit Converter -->
-    <div class="unit-converter" id="unitConverter" style="display: none;">
-        <h3>Unit Converter</h3>
-        <div class="converter-group">
-            <label>Value to Convert</label>
-            <div class="converter-input">
-                <input type="number" id="convertValue" placeholder="Enter value" oninput="convertUnits()">
-                <select id="fromUnit" onchange="convertUnits()">
-                    <option value="mm">mm</option>
-                    <option value="cm">cm</option>
-                    <option value="inch">inch</option>
-                </select>
-            </div>
-            <div class="converter-input">
-                <input type="text" id="toMm" readonly placeholder="in mm">
-            </div>
-            <div class="converter-input">
-                <input type="text" id="toCm" readonly placeholder="in cm">
-            </div>
-            <div class="converter-input">
-                <input type="text" id="toInch" readonly placeholder="in inch">
-            </div>
-        </div>
+      <!-- Kategori -->
+      <div class="form-group">
+        <label for="category">Kategori</label>
+        <select id="category" onchange="updateSubCategories()">
+          <option value="">-- Pilih Kategori --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subCategory">Sub Kategori</label>
+        <select id="subCategory" onchange="updateProducts()" disabled>
+          <option value="">-- Pilih Sub Kategori --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="productName">Nama Produk</label>
+        <select id="productName" onchange="updateMaterials()" disabled>
+          <option value="">-- Pilih Produk --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="material">Bahan / Media</label>
+        <select id="material" disabled>
+          <option value="">-- Pilih Material --</option>
+        </select>
+      </div>
+
+      <!-- Ukuran -->
+      <div class="form-group">
+        <label for="length">Panjang (mm)</label>
+        <input type="number" id="length">
+      </div>
+      <div class="form-group">
+        <label for="width">Lebar (mm)</label>
+        <input type="number" id="width">
+      </div>
+      <div class="form-group">
+        <label for="height">Tinggi (mm)</label>
+        <input type="number" id="height">
+      </div>
+      <button onclick="generateSizeCode()">Generate Size Code</button>
+      <input type="text" id="sizeCode" readonly>
+
+      <!-- Harga -->
+      <div class="form-group">
+        <label for="price">Harga Rp.</label>
+        <input type="number" id="price">
+      </div>
+
+      <!-- Generate -->
+      <button onclick="generatePartNumber()">Generate Part Number</button>
+
+      <!-- Hasil -->
+      <div class="result" id="result" style="display:none;">
+        <input type="text" id="partNumber" readonly>
+        <input type="text" id="qrData" readonly>
+        <div id="qr-code"></div>
+      </div>
+
+      <!-- Tabel -->
+      <h2>Data Part Number</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Kategori</th>
+            <th>Sub Kategori</th>
+            <th>Produk</th>
+            <th>Material</th>
+            <th>Ukuran</th>
+            <th>Harga</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="8">Belum ada data</td></tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <!-- Jakarta Clock -->
-    <div class="jakarta-clock">
-        <div>Jakarta, Indonesia</div>
-        <div class="clock-time" id="jakarta-time"></div>
-        <div class="clock-date" id="jakarta-date"></div>
-    </div>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="login-modal">
-        <div class="login-content">
-            <h2>Login Required</h2>
-            <form class="login-form" onsubmit="return validateLogin()">
-                <input type="text" id="username" placeholder="Username" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button type="submit">Login</button>
-            </form>
-            <div id="loginError" class="error-message">Invalid username or password</div>
-        </div>
-    </div>
-
-    <!-- Add Option Modal -->
-    <div id="addOptionModal" class="add-option-modal">
-        <div class="add-option-content">
-            <h2 id="addOptionTitle">Add New Option</h2>
-            <form class="add-option-form" onsubmit="return saveNewOption()">
-                <div id="categorySelection" style="display: none;">
-                    <label for="parentCategory">Category</label>
-                    <select id="parentCategory" required>
-                        <option value="">-- Select Category --</option>
-                        <option value="01">01. Filter</option>
-                        <option value="02">02. Sheetmetal</option>
-                        <option value="03">03. Bahan baku</option>
-                        <option value="04">04. Barang jadi</option>
-                        <option value="05">05. Jasa</option>
-                        <option value="06">06. Subcount</option>
-                    </select>
-                </div>
-                <div id="subCategorySelection" style="display: none;">
-                    <label for="parentSubCategory">Sub Category</label>
-                    <select id="parentSubCategory" required>
-                        <option value="">-- Select Sub Category --</option>
-                    </select>
-                </div>
-                <div id="codeFieldGroup">
-                    <label for="newOptionCode">Code</label>
-                    <input type="text" id="newOptionCode">
-                </div>
-                <div>
-                    <label for="newOptionName">Name</label>
-                    <input type="text" id="newOptionName" required>
-                </div>
-                <div class="form-buttons">
-                    <button type="submit">Save</button>
-                    <button type="button" class="cancel-btn" onclick="closeAddOptionModal()">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main Content (hidden until login) -->
-    <div id="mainContent" style="display: none;">
-        <div class="container">
-            <div class="header">
-                <h1>System Part Number Generator</h1>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">Kategori</div>
-                
-                <div class="form-group">
-                    <label for="category">Kategori</label>
-                    <select id="category" onchange="updateSubCategories()">
-                        <option value="">-- Pilih Kategori --</option>
-                        <option value="01">01. Filter</option>
-                        <option value="02">02. Sheetmetal</option>
-                        <option value="03">03. Bahan baku</option>
-                        <option value="04">04. Barang jadi</option>
-                        <option value="05">05. Jasa</option>
-                        <option value="06">06. Subcount</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="subCategory">Sub Kategori</label>
-                    <div class="dropdown-with-add">
-                        <select id="subCategory" onchange="updateProductNames()" disabled>
-                            <option value="">-- Pilih Sub Kategori --</option>
-                        </select>
-                        <button class="add-btn" onclick="showAddOptionModal('subCategory')">+</button>
-                    </div>
-                </div>
-                
-                <div class="form-group" id="productNameGroup">
-                    <label for="productName" id="productNameLabel">Nama Product</label>
-                    <div class="dropdown-with-add">
-                        <select id="productName" onchange="updateMaterialOptions()" disabled>
-                            <option value="">-- Pilih Nama Product --</option>
-                        </select>
-                        <button class="add-btn" onclick="showAddOptionModal('productName')">+</button>
-                    </div>
-                </div>
-                
-                <div class="form-group header-type" id="headerTypeGroup">
-                    <label for="headerType">Header Type</label>
-                    <select id="headerType">
-                        <option value="">-- Select Header Type --</option>
-                        <option value="Non Header">Non Header</option>
-                        <option value="Single Header">Single Header</option>
-                        <option value="Double Header">Double Header</option>
-                    </select>
-                </div>
-                
-                <div class="form-group" id="materialGroup">
-                    <label for="material" id="materialLabel">Bahan/Media Utama</label>
-                    <div class="dropdown-with-add">
-                        <select id="material" disabled>
-                            <option value="">-- Pilih Bahan/Media --</option>
-                        </select>
-                        <button class="add-btn" id="materialAddBtn" onclick="showAddOptionModal('material')" disabled>+</button>
-                    </div>
-                </div>
-
-                <!-- Pocket Input Field -->
-                <div class="form-group pocket-input" id="pocketInputGroup">
-                    <label for="pocketCount">Number of Pockets</label>
-                    <input type="number" id="pocketCount" min="1" value="1">
-                </div>
-            </div>
-            
-            <!-- Regular Dimensions Section -->
-            <div class="section" id="regularDimensions">
-                <div class="section-title" id="dimensionsTitle">Ukuran (mm)</div>
-                <div class="form-group">
-                    <div class="dimensions">
-                        <div class="dimension-input">
-                            <label for="length">Panjang</label>
-                            <input type="number" id="length" min="0">
-                        </div>
-                        <div class="dimension-input">
-                            <label for="width">Lebar</label>
-                            <input type="number" id="width" min="0">
-                        </div>
-                        <div class="dimension-input">
-                            <label for="height">Tinggi</label>
-                            <input type="number" id="height" min="0">
-                        </div>
-                    </div>
-                    <button class="generate-size-btn" onclick="generateSizeCode()">Generate Size Code</button>
-                </div>
-                <div class="form-group">
-                    <label for="sizeCode">Kode Ukuran</label>
-                    <input type="text" id="sizeCode" readonly>
-                </div>
-            </div>
-            
-            <!-- Cartridge Dimensions Section -->
-            <div class="section cartridge-dimensions" id="cartridgeDimensions" style="display: none;">
-                <div class="section-title">Dimensi Cartridge (mm)</div>
-                <div class="form-group">
-                    <div class="cartridge-dimension-group">
-                        <div class="cartridge-dimension-input">
-                            <label for="topOuter">Top Outer Ø (mm)</label>
-                            <input type="number" id="topOuter" min="0">
-                        </div>
-                        <div class="cartridge-dimension-input">
-                            <label for="topInner">Top Inner Ø (mm)</label>
-                            <input type="text" id="topInner">
-                            <span class="info-icon" title="Jika Salah satu ring plate memang tidak ada diameter dalam maka isi saja dengan tanda strip -">i</span>
-                        </div>
-                    </div>
-                    <div class="cartridge-dimension-group">
-                        <div class="cartridge-dimension-input">
-                            <label for="bottomOuter">Bottom Outer Ø (mm)</label>
-                            <input type="number" id="bottomOuter" min="0">
-                        </div>
-                        <div class="cartridge-dimension-input">
-                            <label for="bottomInner">Bottom Inner Ø (mm)</label>
-                            <input type="text" id="bottomInner">
-                            <span class="info-icon" title="Jika Salah satu ring plate memang tidak ada diameter dalam maka isi saja dengan tanda strip -">i</span>
-                        </div>
-                    </div>
-                    <div class="cartridge-dimension-group">
-                        <div class="cartridge-dimension-input">
-                            <label for="cartridgeHeight">Tinggi (mm)</label>
-                            <input type="number" id="cartridgeHeight" min="0">
-                        </div>
-                    </div>
-                    <div class="cartridge-dimension-group">
-                        <div class="cartridge-dimension-input">
-                            <label for="expanded">Expanded</label>
-                            <select id="expanded">
-                                <option value="single expanded">Single Expanded</option>
-                                <option value="double expanded">Double Expanded</option>
-                                <option value="no expanded">No Expanded</option>
-                            </select>
-                        </div>
-                        <div class="cartridge-dimension-input">
-                            <label for="gasket">Gasket</label>
-                            <select id="gasket">
-                                <option value="top gasket">Top Gasket</option>
-                                <option value="bottom gasket">Bottom Gasket</option>
-                                <option value="top bottom gasket">Top Bottom Gasket</option>
-                                <option value="no gasket">No Gasket</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="cartridge-dimension-group">
-                        <div class="cartridge-dimension-input">
-                            <label for="ringPlateType">Type Ring Plate</label>
-                            <select id="ringPlateType">
-                                <option value="open top, open bottom">Open Top, Open Bottom</option>
-                                <option value="closed top, open bottom">Closed Top, Open Bottom</option>
-                                <option value="closed top, closed bottom">Closed Top, Closed Bottom</option>
-                                <option value="open top, closed bottom">Open Top, Closed Bottom</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="generate-size-btn" onclick="generateSizeCode()">Generate Size Code</button>
-                </div>
-                <div class="form-group">
-                    <label for="cartridgeSizeCode">Kode Ukuran</label>
-                    <input type="text" id="cartridgeSizeCode" readonly>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="price">Harga Rp.</label>
-                <input type="number" id="price" min="0">
-            </div>
-            
-            <div class="generate-section">
-                <button onclick="generatePartNumber()">Generate Part Number</button>
-            </div>
-            
-            <div class="result" id="result" style="display: none;">
-                <div class="form-group">
-                    <label for="partNumber">Part Number</label>
-                    <div class="flex-row">
-                        <input type="text" id="partNumber" readonly style="flex: 1;">
-                        <button class="copy-btn" onclick="copyToClipboard('partNumber')">Copy</button>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>QR Code Data</label>
-                    <div class="flex-row">
-                        <input type="text" id="qrData" readonly style="flex: 1;">
-                        <button class="copy-btn" onclick="copyToClipboard('qrData')">Copy</button>
-                    </div>
-                    <div class="qr-container">
-                        <div id="qr-code"></div>
-                        <div class="save-buttons">
-                            <button class="save-btn" onclick="saveQRCode('png')">Save as PNG</button>
-                            <button class="save-btn" onclick="saveQRCode('jpeg')">Save as JPEG</button>
-                        </div>
-                        <div class="qr-value" id="qr-text"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section data-section">
-                <div class="section-title">Data Part Number</div>
-                
-                <!-- Search Container -->
-                <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search by part number, product, etc...">
-                    <button onclick="searchTable()">Search</button>
-                </div>
-                
-                <div class="category-tabs" id="categoryTabs">
-                    <button class="category-tab active" onclick="filterDataTable('all')">Semua</button>
-                    <button class="category-tab" onclick="filterDataTable('F1')">Filter</button>
-                    <button class="category-tab" onclick="filterDataTable('F2')">Sheetmetal</button>
-                    <button class="category-tab" onclick="filterDataTable('F3')">Bahan baku</button>
-                    <button class="category-tab" onclick="filterDataTable('F6')">Barang jadi</button>
-                    <button class="category-tab" onclick="filterDataTable('F5')">Jasa</button>
-                    <button class="category-tab" onclick="filterDataTable('F4')">Subcount</button>
-                </div>
-                
-                <div class="table-container">
-                    <table class="data-table" id="dataTable">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Part Number</th>
-                                <th>Kategori</th>
-                                <th>Sub Kategori</th>
-                                <th>Produk</th>
-                                <th>Material</th>
-                                <th>Ukuran</th>
-                                <th>Harga</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td colspan="9" class="no-data">Belum ada data</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div style="text-align: center; margin-top: 15px;">
-                    <button class="clear-data-btn" onclick="clearAllData()">Clear All Data</button>
-                    <button class="export-btn" onclick="exportToExcel()">Export to Excel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-  <!-- load supabase -->
+  <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <!-- load qrcode -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-  <!-- script utama -->
   <script src="script.js"></script>
 </body>
 </html>
-
-</body>
-</html>
-
