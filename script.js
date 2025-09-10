@@ -14,6 +14,37 @@ let products = [];
 let materials = [];
 let partNumberData = [];
 
+// Sub Categories
+  const { data: sub, error: subError } = await supabase
+    .from("sub_categories")
+    .select("*")
+    .order("id");
+  if (subError) console.error(subError);
+  subCategories = sub || [];
+
+  // Products
+  const { data: prod, error: prodError } = await supabase
+    .from("products")
+    .select("*")
+    .order("id");
+  if (prodError) console.error(prodError);
+  products = prod || [];
+
+  // Materials
+  const { data: mat, error: matError } = await supabase
+    .from("materials")
+    .select("*")
+    .order("id");
+  if (matError) console.error(matError);
+  materials = mat || [];
+
+  // Isi dropdown kategori
+  populateCategories();
+}
+
+// Panggil loadData waktu halaman ready
+document.addEventListener("DOMContentLoaded", loadData);
+
 // ==========================
 // Clock (Jakarta)
 // ==========================
@@ -243,5 +274,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadMasterData();
   await loadPartNumbers();
 });
+
 
 
