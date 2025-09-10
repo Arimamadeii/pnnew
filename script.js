@@ -2,7 +2,7 @@
 // Supabase Config
 // ==========================
 const SUPABASE_URL = "https://ojskxzgbmgwspmswyony.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qc2t4emdibWd3c3Btc3d5b255Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5Nzc1NDcsImV4cCI6MjA3MjU1MzU0N30.glFY56Wkw-zwTb63reXMl1bifc6QYKLM543Rljt2LH8";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qc2t4emdibWd3c3d5b255Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5Nzc1NDcsImV4cCI6MjA3MjU1MzU0N30.glFY56Wkw-zwTb63reXMl1bifc6QYKLM543Rljt2LH8";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ==========================
@@ -13,37 +13,6 @@ let subCategories = [];
 let products = [];
 let materials = [];
 let partNumberData = [];
-
-// Sub Categories
-  const { data: sub, error: subError } = await supabase
-    .from("sub_categories")
-    .select("*")
-    .order("id");
-  if (subError) console.error(subError);
-  subCategories = sub || [];
-
-  // Products
-  const { data: prod, error: prodError } = await supabase
-    .from("products")
-    .select("*")
-    .order("id");
-  if (prodError) console.error(prodError);
-  products = prod || [];
-
-  // Materials
-  const { data: mat, error: matError } = await supabase
-    .from("materials")
-    .select("*")
-    .order("id");
-  if (matError) console.error(matError);
-  materials = mat || [];
-
-  // Isi dropdown kategori
-  populateCategories();
-}
-
-// Panggil loadData waktu halaman ready
-document.addEventListener("DOMContentLoaded", loadData);
 
 // ==========================
 // Clock (Jakarta)
@@ -274,6 +243,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadMasterData();
   await loadPartNumbers();
 });
-
-
-
