@@ -1,130 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Part Number Generator</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farrindo Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 1.5rem;
+            max-width: 135px;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .conversion-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        .time-zone {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .catalogue-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
-  <!-- Logo -->
-  <div class="farrindo-logo">
-    <img src="https://www.farrindo.co.id/wp-content/uploads/2025/01/300x39-logofarrindo2025bawahbanget.webp" alt="Farrindo Logo" width="150">
-  </div>
-
-  <!-- Clock -->
-  <div class="jakarta-clock">
-    <div>Jakarta, Indonesia</div>
-    <div class="clock-time" id="jakarta-time"></div>
-    <div class="clock-date" id="jakarta-date"></div>
-  </div>
-
-  <!-- Login Modal -->
-  <div id="loginModal" class="login-modal">
-    <div class="login-content">
-      <h2>Login Required</h2>
-      <form class="login-form" onsubmit="return validateLogin()">
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-      </form>
-      <div id="loginError" class="error-message">Invalid username or password</div>
+    <div class="login-container">
+        <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" alt="Farrindo Logo" class="logo">
+        <h2 class="text-center mb-4">Login to Farrindo</h2>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        <div class="conversion-container">
+            <h5>Unit Conversion</h5>
+            <div class="form-group">
+                <label for="mm">Millimeters (mm):</label>
+                <input type="number" id="mm" class="form-control" placeholder="Enter mm">
+            </div>
+            <div class="form-group">
+                <label for="inch">Inches (in):</label>
+                <input type="number" id="inch" class="form-control" placeholder="Enter inches">
+            </div>
+            <div class="form-group">
+                <label for="cm">Centimeters (cm):</label>
+                <input type="number" id="cm" class="form-control" placeholder="Enter cm">
+            </div>
+        </div>
+        <div class="time-zone" id="time-zone"></div>
+        <div class="catalogue-link">
+            <a href="https://www.farrindo.co.id/pre-filter/#" target="_blank">View Product Catalogue</a>
+        </div>
     </div>
-  </div>
 
-  <!-- Main Content -->
-  <div id="mainContent" style="display: none;">
-    <div class="container">
-      <h1>System Part Number Generator</h1>
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-      <!-- Dropdowns -->
-      <div class="form-group">
-        <label for="category">Kategori</label>
-        <select id="category" onchange="updateSubCategories()">
-          <option value="">-- Pilih Kategori --</option>
-        </select>
-      </div>
+        const SUPABASE_URL = 'https://zcgflkxqyborzbltroes.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZ2Zsa3hxeWJvcnpibHRyb2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc1MjQxMTgsImV4cCI6MjA3MzEwMDExOH0.66fp8DIVxHyQeRsF0ZyzdzutKTWtn2yWik43-QMhKKI';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      <div class="form-group">
-        <label for="subCategory">Sub Kategori</label>
-        <select id="subCategory" onchange="updateProducts()" disabled>
-          <option value="">-- Pilih Sub Kategori --</option>
-        </select>
-      </div>
+        // Login handling
+        const form = document.getElementById('login-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-      <div class="form-group">
-        <label for="productName">Nama Produk</label>
-        <select id="productName" onchange="updateMaterials()" disabled>
-          <option value="">-- Pilih Produk --</option>
-        </select>
-      </div>
+            if (username === 'Farrindo' && password === 'Farrindo365') {
+                window.location.href = 'part-number.html'; // Redirect to part number page
+            } else {
+                alert('Invalid username or password');
+            }
+        });
 
-      <div class="form-group">
-        <label for="material">Bahan / Media</label>
-        <select id="material" disabled>
-          <option value="">-- Pilih Material --</option>
-        </select>
-      </div>
+        // Unit conversion
+        const mmInput = document.getElementById('mm');
+        const inchInput = document.getElementById('inch');
+        const cmInput = document.getElementById('cm');
 
-      <!-- Ukuran -->
-      <div class="form-group">
-        <label for="length">Panjang (mm)</label>
-        <input type="number" id="length">
-      </div>
-      <div class="form-group">
-        <label for="width">Lebar (mm)</label>
-        <input type="number" id="width">
-      </div>
-      <div class="form-group">
-        <label for="height">Tinggi (mm)</label>
-        <input type="number" id="height">
-      </div>
-      <button onclick="generateSizeCode()">Generate Size Code</button>
-      <input type="text" id="sizeCode" readonly>
+        mmInput.addEventListener('input', () => {
+            const mm = parseFloat(mmInput.value);
+            if (!isNaN(mm)) {
+                inchInput.value = (mm / 25.4).toFixed(2);
+                cmInput.value = (mm / 10).toFixed(2);
+            } else {
+                inchInput.value = '';
+                cmInput.value = '';
+            }
+        });
 
-      <!-- Harga -->
-      <div class="form-group">
-        <label for="price">Harga Rp.</label>
-        <input type="number" id="price">
-      </div>
+        inchInput.addEventListener('input', () => {
+            const inch = parseFloat(inchInput.value);
+            if (!isNaN(inch)) {
+                mmInput.value = (inch * 25.4).toFixed(2);
+                cmInput.value = (inch * 2.54).toFixed(2);
+            } else {
+                mmInput.value = '';
+                cmInput.value = '';
+            }
+        });
 
-      <!-- Generate -->
-      <button onclick="generatePartNumber()">Generate Part Number</button>
+        cmInput.addEventListener('input', () => {
+            const cm = parseFloat(cmInput.value);
+            if (!isNaN(cm)) {
+                mmInput.value = (cm * 10).toFixed(2);
+                inchInput.value = (cm / 2.54).toFixed(2);
+            } else {
+                mmInput.value = '';
+                inchInput.value = '';
+            }
+        });
 
-      <!-- Hasil -->
-      <div class="result" id="result" style="display:none;">
-        <input type="text" id="partNumber" readonly>
-        <input type="text" id="qrData" readonly>
-        <div id="qr-code"></div>
-      </div>
-
-      <!-- Tabel -->
-      <h2>Data Part Number</h2>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Kategori</th>
-            <th>Sub Kategori</th>
-            <th>Produk</th>
-            <th>Material</th>
-            <th>Ukuran</th>
-            <th>Harga</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <tr><td colspan="8">Belum ada data</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Supabase -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
+        // Display Jakarta time
+        function updateTime() {
+            const options = {
+                timeZone: 'Asia/Jakarta',
+                hour12: false,
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            const timeZoneDiv = document.getElementById('time-zone');
+            timeZoneDiv.textContent = new Date().toLocaleString('en-US', options) + ' WIB';
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
 </body>
 </html>
