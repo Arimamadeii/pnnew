@@ -39,6 +39,11 @@
             border-radius: 50%;
             margin-right: 10px;
         }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -64,6 +69,7 @@
                                 <select class="form-select" id="categorySelect" required>
                                     <option value="">Pilih Kategori</option>
                                 </select>
+                                <div id="categoryError" class="error-message"></div>
                             </div>
 
                             <div class="mb-3">
@@ -71,6 +77,7 @@
                                 <select class="form-select" id="subcategorySelect" required disabled>
                                     <option value="">Pilih Subkategori</option>
                                 </select>
+                                <div id="subcategoryError" class="error-message"></div>
                             </div>
 
                             <div class="mb-3">
@@ -78,6 +85,7 @@
                                 <select class="form-select" id="productSelect" required disabled>
                                     <option value="">Pilih Produk</option>
                                 </select>
+                                <div id="productError" class="error-message"></div>
                             </div>
 
                             <div class="mb-3">
@@ -85,6 +93,7 @@
                                 <select class="form-select" id="mediaSelect" required disabled>
                                     <option value="">Pilih Media</option>
                                 </select>
+                                <div id="mediaError" class="error-message"></div>
                             </div>
 
                             <div class="mb-3">
@@ -92,6 +101,7 @@
                                 <select class="form-select" id="dimensionSelect" required disabled>
                                     <option value="">Pilih Dimensi</option>
                                 </select>
+                                <div id="dimensionError" class="error-message"></div>
                             </div>
 
                             <div class="mb-3" id="pocketVOptionContainer" style="display: none;">
@@ -178,6 +188,13 @@
         const recentPartNumbers = document.getElementById('recentPartNumbers');
         const loading = document.getElementById('loading');
 
+        // Error message elements
+        const categoryError = document.getElementById('categoryError');
+        const subcategoryError = document.getElementById('subcategoryError');
+        const productError = document.getElementById('productError');
+        const mediaError = document.getElementById('mediaError');
+        const dimensionError = document.getElementById('dimensionError');
+
         // === FUNCTIONS ===
         function showLoading() {
             loading.style.display = 'block';
@@ -187,15 +204,28 @@
             loading.style.display = 'none';
         }
 
+        function clearErrors() {
+            categoryError.textContent = '';
+            subcategoryError.textContent = '';
+            productError.textContent = '';
+            mediaError.textContent = '';
+            dimensionError.textContent = '';
+        }
+
         async function loadCategories() {
             showLoading();
+            clearErrors();
             try {
                 const { data, error } = await supabase
                     .from('categories')
                     .select('*')
                     .order('code');
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error:', error);
+                    categoryError.textContent = 'Gagal memuat data kategori. Pastikan RLS policy sudah dikonfigurasi dengan benar.';
+                    throw error;
+                }
 
                 categorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
                 data.forEach(category => {
@@ -206,7 +236,6 @@
                 });
             } catch (error) {
                 console.error('Error loading categories:', error);
-                alert('Gagal memuat data kategori');
             } finally {
                 hideLoading();
             }
@@ -214,6 +243,7 @@
 
         async function loadSubcategories(categoryCode) {
             showLoading();
+            clearErrors();
             try {
                 // First get category ID
                 const { data: categoryData, error: categoryError } = await supabase
@@ -255,7 +285,7 @@
 
             } catch (error) {
                 console.error('Error loading subcategories:', error);
-                alert('Gagal memuat data subkategori');
+                subcategoryError.textContent = 'Gagal memuat data subkategori';
             } finally {
                 hideLoading();
             }
@@ -263,6 +293,7 @@
 
         async function loadProducts(subcategoryCode) {
             showLoading();
+            clearErrors();
             try {
                 // First get subcategory ID
                 const categoryCode = categorySelect.value;
@@ -314,7 +345,7 @@
 
             } catch (error) {
                 console.error('Error loading products:', error);
-                alert('Gagal memuat data produk');
+                productError.textContent = 'Gagal memuat data produk';
             } finally {
                 hideLoading();
             }
@@ -322,6 +353,7 @@
 
         async function loadMedia(subcategoryCode) {
             showLoading();
+            clearErrors();
             try {
                 // First get subcategory ID
                 const categoryCode = categorySelect.value;
@@ -367,7 +399,7 @@
 
             } catch (error) {
                 console.error('Error loading media:', error);
-                alert('Gagal memuat data media');
+                mediaError.textContent = 'Gagal memuat data media';
             } finally {
                 hideLoading();
             }
@@ -375,6 +407,7 @@
 
         async function loadDimensions(productCode) {
             showLoading();
+            clearErrors();
             try {
                 // First get product ID
                 const categoryCode = categorySelect.value;
@@ -424,6 +457,7 @@
                     option.textContent = 'Tidak ada dimensi tersedia';
                     dimensionSelect.appendChild(option);
                     dimensionSelect.disabled = true;
+                    dimensionError.textContent = 'Tidak ada dimensi yang tersedia untuk produk ini. Silakan tambahkan dimensi terlebih dahulu.';
                 } else {
                     data.forEach(dimension => {
                         const option = document.createElement('option');
@@ -438,7 +472,7 @@
 
             } catch (error) {
                 console.error('Error loading dimensions:', error);
-                alert('Gagal memuat data dimensi');
+                dimensionError.textContent = 'Gagal memuat data dimensi';
             } finally {
                 hideLoading();
             }
@@ -446,6 +480,7 @@
 
         async function generatePartNumber() {
             showLoading();
+            clearErrors();
             try {
                 const categoryCode = categorySelect.value;
                 const subcategoryCode = subcategorySelect.value;
@@ -455,29 +490,32 @@
                 const pocketVOption = pocketVSelect.value || null;
                 const headerOption = headerSelect.value || null;
 
-                // Call the Supabase function
-                const { data, error } = await supabase.rpc('generate_part_number', {
-                    p_category_code: categoryCode,
-                    p_subcategory_code: subcategoryCode,
-                    p_product_code: productCode,
-                    p_media_code: mediaCode,
-                    p_dimension_code: dimensionCode,
-                    p_pocket_v_option: pocketVOption,
-                    p_header_option: headerOption
-                });
+                // Validasi input
+                if (!categoryCode || !subcategoryCode || !productCode || !mediaCode || !dimensionCode) {
+                    throw new Error('Semua field harus diisi');
+                }
 
-                if (error) throw error;
+                // Manual implementation instead of RPC call
+                const partNumber = await manualGeneratePartNumber(
+                    categoryCode, 
+                    subcategoryCode, 
+                    productCode, 
+                    mediaCode, 
+                    dimensionCode,
+                    pocketVOption,
+                    headerOption
+                );
 
                 // Display the result
-                partNumberResult.textContent = data;
+                partNumberResult.textContent = partNumber;
                 
                 // Show details
-                await loadPartNumberDetails(data);
+                await loadPartNumberDetails(partNumber);
                 
                 // Refresh recent part numbers
                 await loadRecentPartNumbers();
 
-                alert(`Part Number berhasil dibuat: ${data}`);
+                alert(`Part Number berhasil dibuat: ${partNumber}`);
 
             } catch (error) {
                 console.error('Error generating part number:', error);
@@ -487,38 +525,113 @@
             }
         }
 
+        async function manualGeneratePartNumber(
+            categoryCode, 
+            subcategoryCode, 
+            productCode, 
+            mediaCode, 
+            dimensionCode,
+            pocketVOption,
+            headerOption
+        ) {
+            // Construct part number manually
+            const partNumber = `${categoryCode}${subcategoryCode}${productCode}-${mediaCode}${dimensionCode}`;
+            
+            try {
+                // Get all required IDs
+                const { data: categoryData, error: categoryError } = await supabase
+                    .from('categories')
+                    .select('id')
+                    .eq('code', categoryCode)
+                    .single();
+
+                if (categoryError) throw categoryError;
+
+                const { data: subcategoryData, error: subcategoryError } = await supabase
+                    .from('subcategories')
+                    .select('id')
+                    .eq('category_id', categoryData.id)
+                    .eq('code', subcategoryCode)
+                    .single();
+
+                if (subcategoryError) throw subcategoryError;
+
+                const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select('id')
+                    .eq('subcategory_id', subcategoryData.id)
+                    .eq('code', productCode)
+                    .single();
+
+                if (productError) throw productError;
+
+                const { data: mediaData, error: mediaError } = await supabase
+                    .from('media')
+                    .select('id')
+                    .eq('subcategory_id', subcategoryData.id)
+                    .eq('code', mediaCode)
+                    .single();
+
+                if (mediaError) throw mediaError;
+
+                const { data: dimensionData, error: dimensionError } = await supabase
+                    .from('dimensions')
+                    .select('id')
+                    .eq('product_id', productData.id)
+                    .eq('code', dimensionCode)
+                    .single();
+
+                if (dimensionError) {
+                    console.warn('Dimension not found, proceeding without dimension_id');
+                }
+
+                // Insert into part_numbers table
+                const { data, error } = await supabase
+                    .from('part_numbers')
+                    .insert({
+                        part_number: partNumber,
+                        category_id: categoryData.id,
+                        subcategory_id: subcategoryData.id,
+                        product_id: productData.id,
+                        media_id: mediaData.id,
+                        dimension_id: dimensionData ? dimensionData.id : null,
+                        pocket_v_option: pocketVOption,
+                        header_option: headerOption
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Supabase insert error:', error);
+                    throw new Error('Gagal menyimpan part number. Pastikan RLS policy sudah dikonfigurasi dengan benar.');
+                }
+
+                return partNumber;
+            } catch (error) {
+                console.error('Error in manualGeneratePartNumber:', error);
+                throw error;
+            }
+        }
+
         async function loadPartNumberDetails(partNumber) {
             try {
+                // Use the part_number_details view
                 const { data, error } = await supabase
                     .from('part_number_details')
                     .select('*')
                     .eq('part_number', partNumber)
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error loading from part_number_details view:', error);
+                    
+                    // Fallback: try to get data from individual tables
+                    await loadPartNumberDetailsFallback(partNumber);
+                    return;
+                }
 
                 if (data) {
-                    let detailsHtml = `
-                        <div class="text-start">
-                            <small>
-                                <strong>Kategori:</strong> ${data.category_code} - ${data.category_name}<br>
-                                <strong>Subkategori:</strong> ${data.subcategory_code} - ${data.subcategory_name}<br>
-                                <strong>Produk:</strong> ${data.product_code} - ${data.product_name}<br>
-                                <strong>Media:</strong> ${data.media_code} - ${data.media_name}<br>
-                                <strong>Dimensi:</strong> ${data.dimension_code} (${data.length_mm}x${data.width_mm}x${data.height_mm}mm)
-                    `;
-                    
-                    if (data.pocket_v_option) {
-                        detailsHtml += `<br><strong>Pocket/V:</strong> ${data.pocket_v_option}`;
-                    }
-                    
-                    if (data.header_option) {
-                        detailsHtml += `<br><strong>Header:</strong> ${data.header_option}`;
-                    }
-                    
-                    detailsHtml += `</small></div>`;
-                    
-                    partNumberDetails.innerHTML = detailsHtml;
+                    displayPartNumberDetails(data);
                 }
             } catch (error) {
                 console.error('Error loading part number details:', error);
@@ -526,31 +639,102 @@
             }
         }
 
+        async function loadPartNumberDetailsFallback(partNumber) {
+            try {
+                // Extract components from part number
+                const categoryCode = partNumber.substring(0, 2);
+                const subcategoryCode = partNumber.substring(2, 4);
+                const productCode = partNumber.substring(4, 6);
+                const mediaCode = partNumber.substring(7, 9);
+                const dimensionCode = partNumber.substring(9);
+                
+                // Get data from individual tables
+                const [{ data: categoryData }, { data: subcategoryData }, { data: productData }, 
+                       { data: mediaData }, { data: dimensionData }, { data: partNumberData }] = await Promise.all([
+                    supabase.from('categories').select('*').eq('code', categoryCode).single(),
+                    supabase.from('subcategories').select('*').eq('code', subcategoryCode).single(),
+                    supabase.from('products').select('*').eq('code', productCode).single(),
+                    supabase.from('media').select('*').eq('code', mediaCode).single(),
+                    supabase.from('dimensions').select('*').eq('code', dimensionCode).single(),
+                    supabase.from('part_numbers').select('*').eq('part_number', partNumber).single()
+                ]);
+
+                // Construct details object manually
+                const details = {
+                    part_number: partNumber,
+                    category_code: categoryData?.code,
+                    category_name: categoryData?.name,
+                    subcategory_code: subcategoryData?.code,
+                    subcategory_name: subcategoryData?.name,
+                    product_code: productData?.code,
+                    product_name: productData?.name,
+                    media_code: mediaData?.code,
+                    media_name: mediaData?.name,
+                    dimension_code: dimensionData?.code,
+                    length_mm: dimensionData?.length_mm,
+                    width_mm: dimensionData?.width_mm,
+                    height_mm: dimensionData?.height_mm,
+                    pocket_v_option: partNumberData?.pocket_v_option,
+                    header_option: partNumberData?.header_option
+                };
+
+                displayPartNumberDetails(details);
+            } catch (error) {
+                console.error('Error in fallback part number details:', error);
+                partNumberDetails.innerHTML = '<div class="text-danger">Gagal memuat detail part number</div>';
+            }
+        }
+
+        function displayPartNumberDetails(data) {
+            let detailsHtml = `
+                <div class="text-start">
+                    <small>
+                        <strong>Kategori:</strong> ${data.category_code} - ${data.category_name}<br>
+                        <strong>Subkategori:</strong> ${data.subcategory_code} - ${data.subcategory_name}<br>
+                        <strong>Produk:</strong> ${data.product_code} - ${data.product_name}<br>
+                        <strong>Media:</strong> ${data.media_code} - ${data.media_name}<br>
+            `;
+            
+            if (data.dimension_code) {
+                detailsHtml += `<strong>Dimensi:</strong> ${data.dimension_code}`;
+                if (data.length_mm && data.width_mm && data.height_mm) {
+                    detailsHtml += ` (${data.length_mm}x${data.width_mm}x${data.height_mm}mm)`;
+                }
+                detailsHtml += `<br>`;
+            }
+            
+            if (data.pocket_v_option) {
+                detailsHtml += `<strong>Pocket/V:</strong> ${data.pocket_v_option}<br>`;
+            }
+            
+            if (data.header_option) {
+                detailsHtml += `<strong>Header:</strong> ${data.header_option}<br>`;
+            }
+            
+            detailsHtml += `</small></div>`;
+            
+            partNumberDetails.innerHTML = detailsHtml;
+        }
+
         async function loadRecentPartNumbers() {
             try {
+                // Try to use the view first
                 const { data, error } = await supabase
                     .from('part_number_details')
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(5);
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error loading from part_number_details view:', error);
+                    
+                    // Fallback: get from part_numbers table and join manually
+                    await loadRecentPartNumbersFallback();
+                    return;
+                }
 
                 if (data && data.length > 0) {
-                    let html = '<div class="list-group">';
-                    data.forEach(item => {
-                        html += `
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">${item.part_number}</h6>
-                                    <small>${new Date(item.created_at).toLocaleDateString()}</small>
-                                </div>
-                                <small class="text-muted">${item.product_name}</small>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
-                    recentPartNumbers.innerHTML = html;
+                    displayRecentPartNumbers(data);
                 } else {
                     recentPartNumbers.innerHTML = '<p class="text-muted">Belum ada part number</p>';
                 }
@@ -558,6 +742,61 @@
                 console.error('Error loading recent part numbers:', error);
                 recentPartNumbers.innerHTML = '<p class="text-danger">Gagal memuat part number terbaru</p>';
             }
+        }
+
+        async function loadRecentPartNumbersFallback() {
+            try {
+                const { data: partNumbers, error } = await supabase
+                    .from('part_numbers')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                if (partNumbers && partNumbers.length > 0) {
+                    // Get additional details for each part number
+                    const detailedPartNumbers = await Promise.all(
+                        partNumbers.map(async (pn) => {
+                            const [{ data: category }, { data: subcategory }, { data: product }] = await Promise.all([
+                                supabase.from('categories').select('name').eq('id', pn.category_id).single(),
+                                supabase.from('subcategories').select('name').eq('id', pn.subcategory_id).single(),
+                                supabase.from('products').select('name').eq('id', pn.product_id).single()
+                            ]);
+                            
+                            return {
+                                part_number: pn.part_number,
+                                product_name: product?.name || 'Unknown',
+                                created_at: pn.created_at
+                            };
+                        })
+                    );
+                    
+                    displayRecentPartNumbers(detailedPartNumbers);
+                } else {
+                    recentPartNumbers.innerHTML = '<p class="text-muted">Belum ada part number</p>';
+                }
+            } catch (error) {
+                console.error('Error in fallback recent part numbers:', error);
+                recentPartNumbers.innerHTML = '<p class="text-danger">Gagal memuat part number terbaru</p>';
+            }
+        }
+
+        function displayRecentPartNumbers(data) {
+            let html = '<div class="list-group">';
+            data.forEach(item => {
+                html += `
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${item.part_number}</h6>
+                            <small>${new Date(item.created_at).toLocaleDateString()}</small>
+                        </div>
+                        <small class="text-muted">${item.product_name}</small>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            recentPartNumbers.innerHTML = html;
         }
 
         // === EVENT LISTENERS ===
