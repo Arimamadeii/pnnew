@@ -3,66 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farrindo Login</title>
+    <title>Farrindo Login & Part Number Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        .logo {
-            display: block;
-            margin: 0 auto 1.5rem;
-            max-width: 135px;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .conversion-container {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: #e9ecef;
-            border-radius: 4px;
-        }
-        .time-zone {
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        .catalogue-link {
-            text-align: center;
-            margin-top: 1rem;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="login-container">
         <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" alt="Farrindo Logo" class="logo">
-        <h2 class="text-center mb-4">Login to Farrindo</h2>
-        <form id="login-form">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" class="form-control" placeholder="Enter username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
+        
+        <!-- Login Section -->
+        <div id="login-section">
+            <h2 class="text-center mb-4">Login to Farrindo</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+        </div>
+
+        <!-- Part Number Generator Section -->
+        <div id="part-number-section" style="display: none;">
+            <h2 class="text-center mb-4">Part Number Generator</h2>
+            <form id="part-number-form">
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <select id="category" class="form-select" required>
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subcategory">Subcategory:</label>
+                    <select id="subcategory" class="form-select" required disabled>
+                        <option value="">Select Subcategory</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product">Product:</label>
+                    <select id="product" class="form-select" required disabled>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="media">Media:</label>
+                    <select id="media" class="form-select" required disabled>
+                        <option value="">Select Media</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dimension">Dimension:</label>
+                    <select id="dimension" class="form-select" required disabled>
+                        <option value="">Select Dimension</option>
+                    </select>
+                </div>
+                <div class="form-group" id="pocket-v-group" style="display: none;">
+                    <label for="pocket-v">Pocket/V Option:</label>
+                    <select id="pocket-v" class="form-select">
+                        <option value="">None</option>
+                        <option value="Pocket">Pocket</option>
+                        <option value="V">V</option>
+                    </select>
+                </div>
+                <div class="form-group" id="header-group" style="display: none;">
+                    <label for="header">Header Option:</label>
+                    <select id="header" class="form-select">
+                        <option value="">None</option>
+                        <option value="Single Header">Single Header</option>
+                        <option value="Double Header">Double Header</option>
+                        <option value="Non Header">Non Header</option>
+                    </select>
+                </div>
+                <button type="submit" id="generate-btn" class="btn btn-primary" disabled>Generate Part Number</button>
+            </form>
+            <div id="result" class="result mt-3"></div>
+        </div>
+
+        <!-- Conversion and Time Section -->
         <div class="conversion-container">
             <h5>Unit Conversion</h5>
             <div class="form-group">
@@ -89,59 +110,137 @@
 
         const SUPABASE_URL = 'https://zcgflkxqyborzbltroes.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZ2Zsa3hxeWJvcnpibHRyb2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc1MjQxMTgsImV4cCI6MjA3MzEwMDExOH0.66fp8DIVxHyQeRsF0ZyzdzutKTWtn2yWik43-QMhKKI';
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Login handling
+        const loginSection = document.getElementById('login-section');
+        const partNumberSection = document.getElementById('part-number-section');
         const form = document.getElementById('login-form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            if (username === 'Farrindo' && password === 'Farrindo365') {
-                window.location.href = 'part-number.html'; // Redirect to part number page
-            } else {
-                alert('Invalid username or password');
-            }
-        });
-
-        // Unit conversion
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
         const mmInput = document.getElementById('mm');
         const inchInput = document.getElementById('inch');
         const cmInput = document.getElementById('cm');
+        const timeZoneDiv = document.getElementById('time-zone');
+        const categorySelect = document.getElementById('category');
+        const subcategorySelect = document.getElementById('subcategory');
+        const productSelect = document.getElementById('product');
+        const mediaSelect = document.getElementById('media');
+        const dimensionSelect = document.getElementById('dimension');
+        const pocketVSelect = document.getElementById('pocket-v');
+        const headerSelect = document.getElementById('header');
+        const pocketVGroup = document.getElementById('pocket-v-group');
+        const headerGroup = document.getElementById('header-group');
+        const generateBtn = document.getElementById('generate-btn');
+        const partNumberForm = document.getElementById('part-number-form');
+        const resultDiv = document.getElementById('result');
 
-        mmInput.addEventListener('input', () => {
+        const VALID_USERNAME = 'Farrindo';
+        const VALID_PASSWORD = 'Farrindo365';
+
+        // Session persistence
+        function checkSession() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                loginSection.style.display = 'none';
+                partNumberSection.style.display = 'block';
+                fetchCategories();
+            }
+        }
+
+        // Form validation
+        function validateInput(input, isValid, message) {
+            if (!isValid) {
+                input.classList.add('is-invalid');
+                let feedback = input.nextElementSibling;
+                if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                    feedback = document.createElement('div');
+                    feedback.classList.add('invalid-feedback');
+                    input.parentNode.appendChild(feedback);
+                }
+                feedback.textContent = message;
+            } else {
+                input.classList.remove('is-invalid');
+                const feedback = input.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.remove();
+                }
+            }
+        }
+
+        // Login handling
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            validateInput(usernameInput, username === VALID_USERNAME, 'Invalid username');
+            validateInput(passwordInput, password === VALID_PASSWORD, 'Invalid password');
+
+            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+                localStorage.setItem('isLoggedIn', 'true');
+                loginSection.style.display = 'none';
+                partNumberSection.style.display = 'block';
+                fetchCategories();
+            }
+        });
+
+        // Real-time input validation
+        usernameInput.addEventListener('input', () => {
+            validateInput(usernameInput, usernameInput.value.trim() !== '', 'Username is required');
+        });
+
+        passwordInput.addEventListener('input', () => {
+            validateInput(passwordInput, passwordInput.value !== '', 'Password is required');
+        });
+
+        // Unit conversion with debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        const convertFromMM = debounce(() => {
             const mm = parseFloat(mmInput.value);
-            if (!isNaN(mm)) {
+            if (!isNaN(mm) && mm >= 0) {
                 inchInput.value = (mm / 25.4).toFixed(2);
                 cmInput.value = (mm / 10).toFixed(2);
             } else {
                 inchInput.value = '';
                 cmInput.value = '';
             }
-        });
+        }, 300);
 
-        inchInput.addEventListener('input', () => {
+        const convertFromInch = debounce(() => {
             const inch = parseFloat(inchInput.value);
-            if (!isNaN(inch)) {
+            if (!isNaN(inch) && inch >= 0) {
                 mmInput.value = (inch * 25.4).toFixed(2);
                 cmInput.value = (inch * 2.54).toFixed(2);
             } else {
                 mmInput.value = '';
                 cmInput.value = '';
             }
-        });
+        }, 300);
 
-        cmInput.addEventListener('input', () => {
+        const convertFromCM = debounce(() => {
             const cm = parseFloat(cmInput.value);
-            if (!isNaN(cm)) {
+            if (!isNaN(cm) && cm >= 0) {
                 mmInput.value = (cm * 10).toFixed(2);
                 inchInput.value = (cm / 2.54).toFixed(2);
             } else {
                 mmInput.value = '';
                 inchInput.value = '';
             }
-        });
+        }, 300);
+
+        mmInput.addEventListener('input', convertFromMM);
+        inchInput.addEventListener('input', convertFromInch);
+        cmInput.addEventListener('input', convertFromCM);
 
         // Display Jakarta time
         function updateTime() {
@@ -156,11 +255,177 @@
                 minute: '2-digit',
                 second: '2-digit'
             };
-            const timeZoneDiv = document.getElementById('time-zone');
             timeZoneDiv.textContent = new Date().toLocaleString('en-US', options) + ' WIB';
         }
+
         updateTime();
         setInterval(updateTime, 1000);
+
+        // Part Number Generator Logic
+        async function fetchCategories() {
+            const { data, error } = await supabase.from('categories').select('id, code, name');
+            if (error) console.error('Error fetching categories:', error);
+            else {
+                data.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ id: cat.id, code: cat.code });
+                    option.textContent = `${cat.code} - ${cat.name}`;
+                    categorySelect.appendChild(option);
+                });
+            }
+        }
+
+        categorySelect.addEventListener('change', async (e) => {
+            if (!e.target.value) {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                subcategorySelect.disabled = true;
+                resetSubsequentFields();
+                return;
+            }
+            const { id: categoryId, code: categoryCode } = JSON.parse(e.target.value);
+            subcategorySelect.disabled = false;
+            const { data, error } = await supabase.from('subcategories').select('id, code, name').eq('category_id', categoryId);
+            if (error) console.error('Error fetching subcategories:', error);
+            else {
+                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+                data.forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ id: sub.id, code: sub.code });
+                    option.textContent = `${sub.code} - ${sub.name}`;
+                    subcategorySelect.appendChild(option);
+                });
+                resetSubsequentFields();
+            }
+        });
+
+        subcategorySelect.addEventListener('change', async (e) => {
+            if (!e.target.value) {
+                productSelect.innerHTML = '<option value="">Select Product</option>';
+                mediaSelect.innerHTML = '<option value="">Select Media</option>';
+                productSelect.disabled = true;
+                mediaSelect.disabled = true;
+                resetSubsequentFields('product');
+                return;
+            }
+            const { id: subcategoryId, code: subcategoryCode } = JSON.parse(e.target.value);
+            productSelect.disabled = false;
+            mediaSelect.disabled = false;
+
+            const [products, media] = await Promise.all([
+                supabase.from('products').select('id, code, name, has_pocket_v_option, has_header_option').eq('subcategory_id', subcategoryId),
+                supabase.from('media').select('id, code, name').eq('subcategory_id', subcategoryId)
+            ]);
+
+            if (products.error) console.error('Error fetching products:', products.error);
+            else {
+                productSelect.innerHTML = '<option value="">Select Product</option>';
+                products.data.forEach(prod => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ id: prod.id, code: prod.code, has_pocket_v: prod.has_pocket_v_option, has_header: prod.has_header_option });
+                    option.textContent = `${prod.code} - ${prod.name}`;
+                    productSelect.appendChild(option);
+                });
+            }
+
+            if (media.error) console.error('Error fetching media:', media.error);
+            else {
+                mediaSelect.innerHTML = '<option value="">Select Media</option>';
+                media.data.forEach(med => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ id: med.id, code: med.code });
+                    option.textContent = `${med.code} - ${med.name}`;
+                    mediaSelect.appendChild(option);
+                });
+            }
+            resetSubsequentFields('product');
+        });
+
+        productSelect.addEventListener('change', async (e) => {
+            if (!e.target.value) {
+                dimensionSelect.innerHTML = '<option value="">Select Dimension</option>';
+                dimensionSelect.disabled = true;
+                pocketVGroup.style.display = 'none';
+                headerGroup.style.display = 'none';
+                return;
+            }
+            const { id: productId, code: productCode, has_pocket_v, has_header } = JSON.parse(e.target.value);
+            dimensionSelect.disabled = false;
+            const { data, error } = await supabase.from('dimensions').select('id, code, length_mm, width_mm, height_mm, description').eq('product_id', productId);
+            if (error) console.error('Error fetching dimensions:', error);
+            else {
+                dimensionSelect.innerHTML = '<option value="">Select Dimension</option>';
+                data.forEach(dim => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({ id: dim.id, code: dim.code });
+                    option.textContent = `${dim.code} - ${dim.length_mm}x${dim.width_mm}x${dim.height_mm} mm`;
+                    dimensionSelect.appendChild(option);
+                });
+            }
+
+            pocketVGroup.style.display = has_pocket_v ? 'block' : 'none';
+            headerGroup.style.display = has_header ? 'block' : 'none';
+        });
+
+        dimensionSelect.addEventListener('change', checkFormCompletion);
+        pocketVSelect.addEventListener('change', checkFormCompletion);
+        headerSelect.addEventListener('change', checkFormCompletion);
+        mediaSelect.addEventListener('change', checkFormCompletion);
+
+        function resetSubsequentFields(startFrom = 'subcategory') {
+            if (startFrom === 'subcategory' || startFrom === 'product') {
+                productSelect.innerHTML = '<option value="">Select Product</option>';
+                productSelect.disabled = true;
+                mediaSelect.innerHTML = '<option value="">Select Media</option>';
+                mediaSelect.disabled = true;
+            }
+            dimensionSelect.innerHTML = '<option value="">Select Dimension</option>';
+            dimensionSelect.disabled = true;
+            pocketVGroup.style.display = 'none';
+            headerGroup.style.display = 'none';
+            generateBtn.disabled = true;
+        }
+
+        function checkFormCompletion() {
+            const category = categorySelect.value;
+            const subcategory = subcategorySelect.value;
+            const product = productSelect.value;
+            const media = mediaSelect.value;
+            const dimension = dimensionSelect.value;
+            generateBtn.disabled = !(category && subcategory && product && media && dimension);
+        }
+
+        partNumberForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            resultDiv.textContent = 'Generating...';
+
+            const categoryData = JSON.parse(categorySelect.value);
+            const subcategoryData = JSON.parse(subcategorySelect.value);
+            const productData = JSON.parse(productSelect.value);
+            const mediaData = JSON.parse(mediaSelect.value);
+            const dimensionData = JSON.parse(dimensionSelect.value);
+
+            const params = {
+                p_category_code: categoryData.code,
+                p_subcategory_code: subcategoryData.code,
+                p_product_code: productData.code,
+                p_media_code: mediaData.code,
+                p_dimension_code: dimensionData.code,
+                p_pocket_v_option: pocketVSelect.value || null,
+                p_header_option: headerSelect.value || null
+            };
+
+            const { data, error } = await supabase.rpc('generate_part_number', params);
+
+            if (error) {
+                console.error('Error generating part number:', error);
+                resultDiv.textContent = `Error: ${error.message}`;
+            } else {
+                resultDiv.textContent = `Generated Part Number: ${data}`;
+            }
+        });
+
+        // Initial session check
+        checkSession();
     </script>
 </body>
-</html> 
+</html>
