@@ -1,432 +1,620 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farrindo Login & Part Number Generator</title>
+    <title>Sistem Part Number Filter</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .part-number-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .loading {
+            display: none;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            background-color: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" alt="Farrindo Logo" class="logo">
-        
-        <!-- Login Section -->
-        <div id="login-section">
-            <h2 class="text-center mb-4">Login to Farrindo</h2>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Login</button>
-            </form>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-filter-circle"></i> Sistem Part Number Filter
+            </a>
         </div>
+    </nav>
 
-        <!-- Part Number Generator Section -->
-        <div id="part-number-section" style="display: none;">
-            <h2 class="text-center mb-4">Part Number Generator</h2>
-            <form id="part-number-form">
-                <div class="form-group">
-                    <label for="category">Category:</label>
-                    <select id="category" class="form-select" required>
-                        <option value="">Select Category</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="subcategory">Subcategory:</label>
-                    <select id="subcategory" class="form-select" required disabled>
-                        <option value="">Select Subcategory</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="product">Product:</label>
-                    <select id="product" class="form-select" required disabled>
-                        <option value="">Select Product</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="media">Media:</label>
-                    <select id="media" class="form-select" required disabled>
-                        <option value="">Select Media</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="dimension">Dimension:</label>
-                    <select id="dimension" class="form-select" required disabled>
-                        <option value="">Select Dimension</option>
-                    </select>
-                </div>
-                <div class="form-group" id="pocket-v-group" style="display: none;">
-                    <label for="pocket-v">Pocket/V Option:</label>
-                    <select id="pocket-v" class="form-select">
-                        <option value="">None</option>
-                        <option value="Pocket">Pocket</option>
-                        <option value="V">V</option>
-                    </select>
-                </div>
-                <div class="form-group" id="header-group" style="display: none;">
-                    <label for="header">Header Option:</label>
-                    <select id="header" class="form-select">
-                        <option value="">None</option>
-                        <option value="Single Header">Single Header</option>
-                        <option value="Double Header">Double Header</option>
-                        <option value="Non Header">Non Header</option>
-                    </select>
-                </div>
-                <button type="submit" id="generate-btn" class="btn btn-primary" disabled>Generate Part Number</button>
-            </form>
-            <div id="result" class="result mt-3"></div>
-        </div>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Buat Part Number Baru</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="partNumberForm">
+                            <div class="mb-3">
+                                <label class="form-label"><span class="step-number">1</span> Kategori</label>
+                                <select class="form-select" id="categorySelect" required>
+                                    <option value="">Pilih Kategori</option>
+                                </select>
+                            </div>
 
-        <!-- Conversion and Time Section -->
-        <div class="conversion-container">
-            <h5>Unit Conversion</h5>
-            <div class="form-group">
-                <label for="mm">Millimeters (mm):</label>
-                <input type="number" id="mm" class="form-control" placeholder="Enter mm">
+                            <div class="mb-3">
+                                <label class="form-label"><span class="step-number">2</span> Subkategori</label>
+                                <select class="form-select" id="subcategorySelect" required disabled>
+                                    <option value="">Pilih Subkategori</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><span class="step-number">3</span> Produk</label>
+                                <select class="form-select" id="productSelect" required disabled>
+                                    <option value="">Pilih Produk</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><span class="step-number">4</span> Media</label>
+                                <select class="form-select" id="mediaSelect" required disabled>
+                                    <option value="">Pilih Media</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label"><span class="step-number">5</span> Dimensi</label>
+                                <select class="form-select" id="dimensionSelect" required disabled>
+                                    <option value="">Pilih Dimensi</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3" id="pocketVOptionContainer" style="display: none;">
+                                <label class="form-label">Pilihan Pocket/V</label>
+                                <select class="form-select" id="pocketVSelect">
+                                    <option value="">Tidak ada pilihan</option>
+                                    <option value="Pocket">Pocket</option>
+                                    <option value="V">V</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3" id="headerOptionContainer" style="display: none;">
+                                <label class="form-label">Pilihan Header</label>
+                                <select class="form-select" id="headerSelect">
+                                    <option value="">Tidak ada pilihan</option>
+                                    <option value="Single Header">Single Header</option>
+                                    <option value="Double Header">Double Header</option>
+                                    <option value="Non Header">Non Header</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-gear"></i> Generate Part Number
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="inch">Inches (in):</label>
-                <input type="number" id="inch" class="form-control" placeholder="Enter inches">
-            </div>
-            <div class="form-group">
-                <label for="cm">Centimeters (cm):</label>
-                <input type="number" id="cm" class="form-control" placeholder="Enter cm">
+
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-upc-scan"></i> Part Number Hasil</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div id="partNumberResult" class="part-number-display mb-3">
+                            -
+                        </div>
+                        <div id="partNumberDetails"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Part Number Terbaru</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentPartNumbers"></div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="time-zone" id="time-zone"></div>
-        <div class="catalogue-link">
-            <a href="https://www.farrindo.co.id/pre-filter/#" target="_blank">View Product Catalogue</a>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        const SUPABASE_URL = 'https://zcgflkxqyborzbltroes.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZ2Zsa3hxeWJvcnpibHRyb2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MjQxMTgsImV4cCI6MjA3MzEwMDExOH0.66fp8DIVxHyQeRsF0ZyzdzutKTWtn2yWik43-QMhKKI';
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // === SETUP SUPABASE ===
+        const supabaseUrl = "https://zcgflkxqyborzbltroes.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZ2Zsa3hxeWJvcnpibHRyb2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc1MjQxMTgsImV4cCI6MjA3MzEwMDExOH0.66fp8DIVxHyQeRsF0ZyzdzutKTWtn2yWik43-QMhKKI";
+        const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const loginSection = document.getElementById('login-section');
-        const partNumberSection = document.getElementById('part-number-section');
-        const form = document.getElementById('login-form');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const mmInput = document.getElementById('mm');
-        const inchInput = document.getElementById('inch');
-        const cmInput = document.getElementById('cm');
-        const timeZoneDiv = document.getElementById('time-zone');
-        const categorySelect = document.getElementById('category');
-        const subcategorySelect = document.getElementById('subcategory');
-        const productSelect = document.getElementById('product');
-        const mediaSelect = document.getElementById('media');
-        const dimensionSelect = document.getElementById('dimension');
-        const pocketVSelect = document.getElementById('pocket-v');
-        const headerSelect = document.getElementById('header');
-        const pocketVGroup = document.getElementById('pocket-v-group');
-        const headerGroup = document.getElementById('header-group');
-        const generateBtn = document.getElementById('generate-btn');
-        const partNumberForm = document.getElementById('part-number-form');
-        const resultDiv = document.getElementById('result');
+        // === ELEMENTS ===
+        const categorySelect = document.getElementById('categorySelect');
+        const subcategorySelect = document.getElementById('subcategorySelect');
+        const productSelect = document.getElementById('productSelect');
+        const mediaSelect = document.getElementById('mediaSelect');
+        const dimensionSelect = document.getElementById('dimensionSelect');
+        const pocketVOptionContainer = document.getElementById('pocketVOptionContainer');
+        const headerOptionContainer = document.getElementById('headerOptionContainer');
+        const pocketVSelect = document.getElementById('pocketVSelect');
+        const headerSelect = document.getElementById('headerSelect');
+        const partNumberForm = document.getElementById('partNumberForm');
+        const partNumberResult = document.getElementById('partNumberResult');
+        const partNumberDetails = document.getElementById('partNumberDetails');
+        const recentPartNumbers = document.getElementById('recentPartNumbers');
+        const loading = document.getElementById('loading');
 
-        const VALID_USERNAME = 'Farrindo';
-        const VALID_PASSWORD = 'Farrindo365';
-
-        // Session persistence
-        function checkSession() {
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                loginSection.style.display = 'none';
-                partNumberSection.style.display = 'block';
-                fetchCategories();
-            }
+        // === FUNCTIONS ===
+        function showLoading() {
+            loading.style.display = 'block';
         }
 
-        // Form validation
-        function validateInput(input, isValid, message) {
-            if (!isValid) {
-                input.classList.add('is-invalid');
-                let feedback = input.nextElementSibling;
-                if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-                    feedback = document.createElement('div');
-                    feedback.classList.add('invalid-feedback');
-                    input.parentNode.appendChild(feedback);
-                }
-                feedback.textContent = message;
-            } else {
-                input.classList.remove('is-invalid');
-                const feedback = input.nextElementSibling;
-                if (feedback && feedback.classList.contains('invalid-feedback')) {
-                    feedback.remove();
-                }
-            }
+        function hideLoading() {
+            loading.style.display = 'none';
         }
 
-        // Login handling
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value;
+        async function loadCategories() {
+            showLoading();
+            try {
+                const { data, error } = await supabase
+                    .from('categories')
+                    .select('*')
+                    .order('code');
 
-            validateInput(usernameInput, username === VALID_USERNAME, 'Invalid username');
-            validateInput(passwordInput, password === VALID_PASSWORD, 'Invalid password');
+                if (error) throw error;
 
-            if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-                localStorage.setItem('isLoggedIn', 'true');
-                loginSection.style.display = 'none';
-                partNumberSection.style.display = 'block';
-                fetchCategories();
-            }
-        });
-
-        // Real-time input validation
-        usernameInput.addEventListener('input', () => {
-            validateInput(usernameInput, usernameInput.value.trim() !== '', 'Username is required');
-        });
-
-        passwordInput.addEventListener('input', () => {
-            validateInput(passwordInput, passwordInput.value !== '', 'Password is required');
-        });
-
-        // Unit conversion with debouncing
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        const convertFromMM = debounce(() => {
-            const mm = parseFloat(mmInput.value);
-            if (!isNaN(mm) && mm >= 0) {
-                inchInput.value = (mm / 25.4).toFixed(2);
-                cmInput.value = (mm / 10).toFixed(2);
-            } else {
-                inchInput.value = '';
-                cmInput.value = '';
-            }
-        }, 300);
-
-        const convertFromInch = debounce(() => {
-            const inch = parseFloat(inchInput.value);
-            if (!isNaN(inch) && inch >= 0) {
-                mmInput.value = (inch * 25.4).toFixed(2);
-                cmInput.value = (inch * 2.54).toFixed(2);
-            } else {
-                mmInput.value = '';
-                cmInput.value = '';
-            }
-        }, 300);
-
-        const convertFromCM = debounce(() => {
-            const cm = parseFloat(cmInput.value);
-            if (!isNaN(cm) && cm >= 0) {
-                mmInput.value = (cm * 10).toFixed(2);
-                inchInput.value = (cm / 2.54).toFixed(2);
-            } else {
-                mmInput.value = '';
-                inchInput.value = '';
-            }
-        }, 300);
-
-        mmInput.addEventListener('input', convertFromMM);
-        inchInput.addEventListener('input', convertFromInch);
-        cmInput.addEventListener('input', convertFromCM);
-
-        // Display Jakarta time
-        function updateTime() {
-            const options = {
-                timeZone: 'Asia/Jakarta',
-                hour12: false,
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            timeZoneDiv.textContent = new Date().toLocaleString('en-US', options) + ' WIB';
-        }
-
-        updateTime();
-        setInterval(updateTime, 1000);
-
-        // Part Number Generator Logic
-        async function fetchCategories() {
-            const { data, error } = await supabase.from('categories').select('id, code, name');
-            if (error) console.error('Error fetching categories:', error);
-            else {
-                data.forEach(cat => {
+                categorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
+                data.forEach(category => {
                     const option = document.createElement('option');
-                    option.value = JSON.stringify({ id: cat.id, code: cat.code });
-                    option.textContent = `${cat.code} - ${cat.name}`;
+                    option.value = category.code;
+                    option.textContent = `${category.code} - ${category.name}`;
                     categorySelect.appendChild(option);
                 });
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                alert('Gagal memuat data kategori');
+            } finally {
+                hideLoading();
             }
         }
 
-        categorySelect.addEventListener('change', async (e) => {
-            if (!e.target.value) {
-                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-                subcategorySelect.disabled = true;
-                resetSubsequentFields();
-                return;
-            }
-            const { id: categoryId, code: categoryCode } = JSON.parse(e.target.value);
-            subcategorySelect.disabled = false;
-            const { data, error } = await supabase.from('subcategories').select('id, code, name').eq('category_id', categoryId);
-            if (error) console.error('Error fetching subcategories:', error);
-            else {
-                subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
-                data.forEach(sub => {
+        async function loadSubcategories(categoryCode) {
+            showLoading();
+            try {
+                // First get category ID
+                const { data: categoryData, error: categoryError } = await supabase
+                    .from('categories')
+                    .select('id')
+                    .eq('code', categoryCode)
+                    .single();
+
+                if (categoryError) throw categoryError;
+
+                // Then get subcategories for this category
+                const { data, error } = await supabase
+                    .from('subcategories')
+                    .select('*')
+                    .eq('category_id', categoryData.id)
+                    .order('code');
+
+                if (error) throw error;
+
+                subcategorySelect.innerHTML = '<option value="">Pilih Subkategori</option>';
+                subcategorySelect.disabled = false;
+                
+                data.forEach(subcategory => {
                     const option = document.createElement('option');
-                    option.value = JSON.stringify({ id: sub.id, code: sub.code });
-                    option.textContent = `${sub.code} - ${sub.name}`;
+                    option.value = subcategory.code;
+                    option.textContent = `${subcategory.code} - ${subcategory.name}`;
                     subcategorySelect.appendChild(option);
                 });
-                resetSubsequentFields();
-            }
-        });
 
-        subcategorySelect.addEventListener('change', async (e) => {
-            if (!e.target.value) {
-                productSelect.innerHTML = '<option value="">Select Product</option>';
-                mediaSelect.innerHTML = '<option value="">Select Media</option>';
+                // Reset dependent fields
+                productSelect.innerHTML = '<option value="">Pilih Produk</option>';
                 productSelect.disabled = true;
+                mediaSelect.innerHTML = '<option value="">Pilih Media</option>';
                 mediaSelect.disabled = true;
-                resetSubsequentFields('product');
-                return;
+                dimensionSelect.innerHTML = '<option value="">Pilih Dimensi</option>';
+                dimensionSelect.disabled = true;
+                pocketVOptionContainer.style.display = 'none';
+                headerOptionContainer.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading subcategories:', error);
+                alert('Gagal memuat data subkategori');
+            } finally {
+                hideLoading();
             }
-            const { id: subcategoryId, code: subcategoryCode } = JSON.parse(e.target.value);
-            productSelect.disabled = false;
-            mediaSelect.disabled = false;
+        }
 
-            const [products, media] = await Promise.all([
-                supabase.from('products').select('id, code, name, has_pocket_v_option, has_header_option').eq('subcategory_id', subcategoryId),
-                supabase.from('media').select('id, code, name').eq('subcategory_id', subcategoryId)
-            ]);
+        async function loadProducts(subcategoryCode) {
+            showLoading();
+            try {
+                // First get subcategory ID
+                const categoryCode = categorySelect.value;
+                const { data: categoryData, error: categoryError } = await supabase
+                    .from('categories')
+                    .select('id')
+                    .eq('code', categoryCode)
+                    .single();
 
-            if (products.error) console.error('Error fetching products:', products.error);
-            else {
-                productSelect.innerHTML = '<option value="">Select Product</option>';
-                products.data.forEach(prod => {
+                if (categoryError) throw categoryError;
+
+                const { data: subcategoryData, error: subcategoryError } = await supabase
+                    .from('subcategories')
+                    .select('id')
+                    .eq('category_id', categoryData.id)
+                    .eq('code', subcategoryCode)
+                    .single();
+
+                if (subcategoryError) throw subcategoryError;
+
+                // Then get products for this subcategory
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('subcategory_id', subcategoryData.id)
+                    .order('code');
+
+                if (error) throw error;
+
+                productSelect.innerHTML = '<option value="">Pilih Produk</option>';
+                productSelect.disabled = false;
+                
+                data.forEach(product => {
                     const option = document.createElement('option');
-                    option.value = JSON.stringify({ id: prod.id, code: prod.code, has_pocket_v: prod.has_pocket_v_option, has_header: prod.has_header_option });
-                    option.textContent = `${prod.code} - ${prod.name}`;
+                    option.value = product.code;
+                    option.textContent = `${product.code} - ${product.name}`;
+                    option.setAttribute('data-has-pocket', product.has_pocket_v_option);
+                    option.setAttribute('data-has-header', product.has_header_option);
                     productSelect.appendChild(option);
                 });
-            }
 
-            if (media.error) console.error('Error fetching media:', media.error);
-            else {
-                mediaSelect.innerHTML = '<option value="">Select Media</option>';
-                media.data.forEach(med => {
+                // Reset dependent fields
+                mediaSelect.innerHTML = '<option value="">Pilih Media</option>';
+                mediaSelect.disabled = true;
+                dimensionSelect.innerHTML = '<option value="">Pilih Dimensi</option>';
+                dimensionSelect.disabled = true;
+                pocketVOptionContainer.style.display = 'none';
+                headerOptionContainer.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading products:', error);
+                alert('Gagal memuat data produk');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadMedia(subcategoryCode) {
+            showLoading();
+            try {
+                // First get subcategory ID
+                const categoryCode = categorySelect.value;
+                const { data: categoryData, error: categoryError } = await supabase
+                    .from('categories')
+                    .select('id')
+                    .eq('code', categoryCode)
+                    .single();
+
+                if (categoryError) throw categoryError;
+
+                const { data: subcategoryData, error: subcategoryError } = await supabase
+                    .from('subcategories')
+                    .select('id')
+                    .eq('category_id', categoryData.id)
+                    .eq('code', subcategoryCode)
+                    .single();
+
+                if (subcategoryError) throw subcategoryError;
+
+                // Then get media for this subcategory
+                const { data, error } = await supabase
+                    .from('media')
+                    .select('*')
+                    .eq('subcategory_id', subcategoryData.id)
+                    .order('code');
+
+                if (error) throw error;
+
+                mediaSelect.innerHTML = '<option value="">Pilih Media</option>';
+                mediaSelect.disabled = false;
+                
+                data.forEach(media => {
                     const option = document.createElement('option');
-                    option.value = JSON.stringify({ id: med.id, code: med.code });
-                    option.textContent = `${med.code} - ${med.name}`;
+                    option.value = media.code;
+                    option.textContent = `${media.code} - ${media.name}`;
                     mediaSelect.appendChild(option);
                 });
-            }
-            resetSubsequentFields('product');
-        });
 
-        productSelect.addEventListener('change', async (e) => {
-            if (!e.target.value) {
-                dimensionSelect.innerHTML = '<option value="">Select Dimension</option>';
+                // Reset dependent fields
+                dimensionSelect.innerHTML = '<option value="">Pilih Dimensi</option>';
                 dimensionSelect.disabled = true;
-                pocketVGroup.style.display = 'none';
-                headerGroup.style.display = 'none';
-                return;
-            }
-            const { id: productId, code: productCode, has_pocket_v, has_header } = JSON.parse(e.target.value);
-            dimensionSelect.disabled = false;
-            const { data, error } = await supabase.from('dimensions').select('id, code, length_mm, width_mm, height_mm, description').eq('product_id', productId);
-            if (error) console.error('Error fetching dimensions:', error);
-            else {
-                dimensionSelect.innerHTML = '<option value="">Select Dimension</option>';
-                data.forEach(dim => {
-                    const option = document.createElement('option');
-                    option.value = JSON.stringify({ id: dim.id, code: dim.code });
-                    option.textContent = `${dim.code} - ${dim.length_mm}x${dim.width_mm}x${dim.height_mm} mm`;
-                    dimensionSelect.appendChild(option);
-                });
-            }
 
-            pocketVGroup.style.display = has_pocket_v ? 'block' : 'none';
-            headerGroup.style.display = has_header ? 'block' : 'none';
+            } catch (error) {
+                console.error('Error loading media:', error);
+                alert('Gagal memuat data media');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadDimensions(productCode) {
+            showLoading();
+            try {
+                // First get product ID
+                const categoryCode = categorySelect.value;
+                const subcategoryCode = subcategorySelect.value;
+                
+                const { data: categoryData, error: categoryError } = await supabase
+                    .from('categories')
+                    .select('id')
+                    .eq('code', categoryCode)
+                    .single();
+
+                if (categoryError) throw categoryError;
+
+                const { data: subcategoryData, error: subcategoryError } = await supabase
+                    .from('subcategories')
+                    .select('id')
+                    .eq('category_id', categoryData.id)
+                    .eq('code', subcategoryCode)
+                    .single();
+
+                if (subcategoryError) throw subcategoryError;
+
+                const { data: productData, error: productError } = await supabase
+                    .from('products')
+                    .select('id')
+                    .eq('subcategory_id', subcategoryData.id)
+                    .eq('code', productCode)
+                    .single();
+
+                if (productError) throw productError;
+
+                // Then get dimensions for this product
+                const { data, error } = await supabase
+                    .from('dimensions')
+                    .select('*')
+                    .eq('product_id', productData.id)
+                    .order('code');
+
+                if (error) throw error;
+
+                dimensionSelect.innerHTML = '<option value="">Pilih Dimensi</option>';
+                dimensionSelect.disabled = false;
+                
+                if (data.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'Tidak ada dimensi tersedia';
+                    dimensionSelect.appendChild(option);
+                    dimensionSelect.disabled = true;
+                } else {
+                    data.forEach(dimension => {
+                        const option = document.createElement('option');
+                        option.value = dimension.code;
+                        const sizeInfo = dimension.length_mm && dimension.width_mm && dimension.height_mm 
+                            ? ` (${dimension.length_mm}x${dimension.width_mm}x${dimension.height_mm}mm)`
+                            : '';
+                        option.textContent = `${dimension.code}${sizeInfo}`;
+                        dimensionSelect.appendChild(option);
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error loading dimensions:', error);
+                alert('Gagal memuat data dimensi');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function generatePartNumber() {
+            showLoading();
+            try {
+                const categoryCode = categorySelect.value;
+                const subcategoryCode = subcategorySelect.value;
+                const productCode = productSelect.value;
+                const mediaCode = mediaSelect.value;
+                const dimensionCode = dimensionSelect.value;
+                const pocketVOption = pocketVSelect.value || null;
+                const headerOption = headerSelect.value || null;
+
+                // Call the Supabase function
+                const { data, error } = await supabase.rpc('generate_part_number', {
+                    p_category_code: categoryCode,
+                    p_subcategory_code: subcategoryCode,
+                    p_product_code: productCode,
+                    p_media_code: mediaCode,
+                    p_dimension_code: dimensionCode,
+                    p_pocket_v_option: pocketVOption,
+                    p_header_option: headerOption
+                });
+
+                if (error) throw error;
+
+                // Display the result
+                partNumberResult.textContent = data;
+                
+                // Show details
+                await loadPartNumberDetails(data);
+                
+                // Refresh recent part numbers
+                await loadRecentPartNumbers();
+
+                alert(`Part Number berhasil dibuat: ${data}`);
+
+            } catch (error) {
+                console.error('Error generating part number:', error);
+                alert('Gagal membuat part number: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadPartNumberDetails(partNumber) {
+            try {
+                const { data, error } = await supabase
+                    .from('part_number_details')
+                    .select('*')
+                    .eq('part_number', partNumber)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    let detailsHtml = `
+                        <div class="text-start">
+                            <small>
+                                <strong>Kategori:</strong> ${data.category_code} - ${data.category_name}<br>
+                                <strong>Subkategori:</strong> ${data.subcategory_code} - ${data.subcategory_name}<br>
+                                <strong>Produk:</strong> ${data.product_code} - ${data.product_name}<br>
+                                <strong>Media:</strong> ${data.media_code} - ${data.media_name}<br>
+                                <strong>Dimensi:</strong> ${data.dimension_code} (${data.length_mm}x${data.width_mm}x${data.height_mm}mm)
+                    `;
+                    
+                    if (data.pocket_v_option) {
+                        detailsHtml += `<br><strong>Pocket/V:</strong> ${data.pocket_v_option}`;
+                    }
+                    
+                    if (data.header_option) {
+                        detailsHtml += `<br><strong>Header:</strong> ${data.header_option}`;
+                    }
+                    
+                    detailsHtml += `</small></div>`;
+                    
+                    partNumberDetails.innerHTML = detailsHtml;
+                }
+            } catch (error) {
+                console.error('Error loading part number details:', error);
+                partNumberDetails.innerHTML = '<div class="text-danger">Gagal memuat detail part number</div>';
+            }
+        }
+
+        async function loadRecentPartNumbers() {
+            try {
+                const { data, error } = await supabase
+                    .from('part_number_details')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    let html = '<div class="list-group">';
+                    data.forEach(item => {
+                        html += `
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${item.part_number}</h6>
+                                    <small>${new Date(item.created_at).toLocaleDateString()}</small>
+                                </div>
+                                <small class="text-muted">${item.product_name}</small>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    recentPartNumbers.innerHTML = html;
+                } else {
+                    recentPartNumbers.innerHTML = '<p class="text-muted">Belum ada part number</p>';
+                }
+            } catch (error) {
+                console.error('Error loading recent part numbers:', error);
+                recentPartNumbers.innerHTML = '<p class="text-danger">Gagal memuat part number terbaru</p>';
+            }
+        }
+
+        // === EVENT LISTENERS ===
+        categorySelect.addEventListener('change', () => {
+            if (categorySelect.value) {
+                loadSubcategories(categorySelect.value);
+            } else {
+                subcategorySelect.innerHTML = '<option value="">Pilih Subkategori</option>';
+                subcategorySelect.disabled = true;
+            }
         });
 
-        dimensionSelect.addEventListener('change', checkFormCompletion);
-        pocketVSelect.addEventListener('change', checkFormCompletion);
-        headerSelect.addEventListener('change', checkFormCompletion);
-        mediaSelect.addEventListener('change', checkFormCompletion);
-
-        function resetSubsequentFields(startFrom = 'subcategory') {
-            if (startFrom === 'subcategory' || startFrom === 'product') {
-                productSelect.innerHTML = '<option value="">Select Product</option>';
+        subcategorySelect.addEventListener('change', () => {
+            if (subcategorySelect.value) {
+                loadProducts(subcategorySelect.value);
+                loadMedia(subcategorySelect.value);
+            } else {
+                productSelect.innerHTML = '<option value="">Pilih Produk</option>';
                 productSelect.disabled = true;
-                mediaSelect.innerHTML = '<option value="">Select Media</option>';
+                mediaSelect.innerHTML = '<option value="">Pilih Media</option>';
                 mediaSelect.disabled = true;
             }
-            dimensionSelect.innerHTML = '<option value="">Select Dimension</option>';
-            dimensionSelect.disabled = true;
-            pocketVGroup.style.display = 'none';
-            headerGroup.style.display = 'none';
-            generateBtn.disabled = true;
-        }
+        });
 
-        function checkFormCompletion() {
-            const category = categorySelect.value;
-            const subcategory = subcategorySelect.value;
-            const product = productSelect.value;
-            const media = mediaSelect.value;
-            const dimension = dimensionSelect.value;
-            generateBtn.disabled = !(category && subcategory && product && media && dimension);
-        }
-
-        partNumberForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            resultDiv.textContent = 'Generating...';
-
-            const categoryData = JSON.parse(categorySelect.value);
-            const subcategoryData = JSON.parse(subcategorySelect.value);
-            const productData = JSON.parse(productSelect.value);
-            const mediaData = JSON.parse(mediaSelect.value);
-            const dimensionData = JSON.parse(dimensionSelect.value);
-
-            const params = {
-                p_category_code: categoryData.code,
-                p_subcategory_code: subcategoryData.code,
-                p_product_code: productData.code,
-                p_media_code: mediaData.code,
-                p_dimension_code: dimensionData.code,
-                p_pocket_v_option: pocketVSelect.value || null,
-                p_header_option: headerSelect.value || null
-            };
-
-            const { data, error } = await supabase.rpc('generate_part_number', params);
-
-            if (error) {
-                console.error('Error generating part number:', error);
-                resultDiv.textContent = `Error: ${error.message}`;
+        productSelect.addEventListener('change', () => {
+            if (productSelect.value) {
+                loadDimensions(productSelect.value);
+                
+                // Show/hide option fields based on product selection
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const hasPocketOption = selectedOption.getAttribute('data-has-pocket') === 'true';
+                const hasHeaderOption = selectedOption.getAttribute('data-has-header') === 'true';
+                
+                pocketVOptionContainer.style.display = hasPocketOption ? 'block' : 'none';
+                headerOptionContainer.style.display = hasHeaderOption ? 'block' : 'none';
+                
+                // Reset option values
+                if (!hasPocketOption) pocketVSelect.value = '';
+                if (!hasHeaderOption) headerSelect.value = '';
             } else {
-                resultDiv.textContent = `Generated Part Number: ${data}`;
+                dimensionSelect.innerHTML = '<option value="">Pilih Dimensi</option>';
+                dimensionSelect.disabled = true;
+                pocketVOptionContainer.style.display = 'none';
+                headerOptionContainer.style.display = 'none';
             }
         });
 
-        // Initial session check
-        checkSession();
+        partNumberForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            generatePartNumber();
+        });
+
+        // === INITIALIZATION ===
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadRecentPartNumbers();
+        });
     </script>
 </body>
 </html>
-
