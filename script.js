@@ -1,225 +1,139 @@
-// ==========================
-// Supabase Config
-// ==========================
-const SUPABASE_URL = "https://ojskxzgbmgwspmswyony.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qc2t4emdibWd3c3Btc3d5b255Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5Nzc1NDcsImV4cCI6MjA3MjU1MzU0N30.glFY56Wkw-zwTb63reXMl1bifc6QYKLM543Rljt2LH8";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// ==========================
-// State
-// ==========================
-let categories = [];
-let subCategories = [];
-let products = [];
-let materials = [];
-let partNumberData = [];
+const SUPABASE_URL = 'https://zcgflkxqyborzbltroes.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZ2Zsa3hxeWJvcnpibHRyb2VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc1MjQxMTgsImV4cCI6MjA3MzEwMDExOH0.66fp8DIVxHyQeRsF0ZyzdzutKTWtn2yWik43-QMhKKI';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ==========================
-// Clock
-// ==========================
-function updateJakartaClock() {
-  const now = new Date();
-  document.getElementById("jakarta-time").textContent =
-    now.toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" });
-  document.getElementById("jakarta-date").textContent =
-    now.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" });
-}
-setInterval(updateJakartaClock, 1000);
+const form = document.getElementById('login-form');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const mmInput = document.getElementById('mm');
+const inchInput = document.getElementById('inch');
+const cmInput = document.getElementById('cm');
+const timeZoneDiv = document.getElementById('time-zone');
 
-// ==========================
-// Load Master Data
-// ==========================
-async function loadMasterData() {
-  const { data: cat, error: catErr } = await supabase.from("categories").select("*").order("code");
-  const { data: sub, error: subErr } = await supabase.from("sub_categories").select("*").order("code");
-  const { data: prod, error: prodErr } = await supabase.from("products").select("*").order("code");
-  const { data: mat, error: matErr } = await supabase.from("materials").select("*").order("code");
+const VALID_USERNAME = 'Farrindo';
+const VALID_PASSWORD = 'Farrindo365';
 
-  if (catErr || subErr || prodErr || matErr) {
-    console.error("Error loading data:", catErr, subErr, prodErr, matErr);
-    return;
-  }
-
-  categories = cat || [];
-  subCategories = sub || [];
-  products = prod || [];
-  materials = mat || [];
-
-  populateCategories();
+// Session persistence
+function checkSession() {
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+        window.location.href = 'part-number.html';
+    }
 }
 
-// ==========================
-// Dropdown Populate
-// ==========================
-function populateCategories() {
-  const select = document.getElementById("category");
-  select.innerHTML = `<option value="">-- Pilih Kategori --</option>`;
-  categories.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = `${c.code}. ${c.name}`;
-    select.appendChild(opt);
-  });
+// Form validation
+function validateInput(input, isValid, message) {
+    if (!isValid) {
+        input.classList.add('is-invalid');
+        let feedback = input.nextElementSibling;
+        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+            feedback = document.createElement('div');
+            feedback.classList.add('invalid-feedback');
+            input.parentNode.appendChild(feedback);
+        }
+        feedback.textContent = message;
+    } else {
+        input.classList.remove('is-invalid');
+        const feedback = input.nextElementSibling;
+        if (feedback && feedback.classList.contains('invalid-feedback')) {
+            feedback.remove();
+        }
+    }
 }
 
-function updateSubCategories() {
-  const categoryId = document.getElementById("category").value;
-  const select = document.getElementById("subCategory");
-  select.disabled = false;
-  select.innerHTML = `<option value="">-- Pilih Sub Kategori --</option>`;
-  subCategories.filter(s => s.category_id == categoryId).forEach(sc => {
-    const opt = document.createElement("option");
-    opt.value = sc.id;
-    opt.textContent = `${sc.code}. ${sc.name}`;
-    select.appendChild(opt);
-  });
-}
+// Login handling
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
 
-function updateProducts() {
-  const subCategoryId = document.getElementById("subCategory").value;
-  const select = document.getElementById("productName");
-  select.disabled = false;
-  select.innerHTML = `<option value="">-- Pilih Produk --</option>`;
-  products.filter(p => p.sub_category_id == subCategoryId).forEach(pr => {
-    const opt = document.createElement("option");
-    opt.value = pr.id;
-    opt.textContent = `${pr.code}. ${pr.name}`;
-    select.appendChild(opt);
-  });
-}
+    validateInput(usernameInput, username === VALID_USERNAME, 'Invalid username');
+    validateInput(passwordInput, password === VALID_PASSWORD, 'Invalid password');
 
-function updateMaterials() {
-  const subCategoryId = document.getElementById("subCategory").value;
-  const select = document.getElementById("material");
-  select.disabled = false;
-  select.innerHTML = `<option value="">-- Pilih Material --</option>`;
-  materials.filter(m => m.sub_category_id == subCategoryId).forEach(ma => {
-    const opt = document.createElement("option");
-    opt.value = ma.id;
-    opt.textContent = `${ma.code}. ${ma.name}`;
-    select.appendChild(opt);
-  });
-}
-
-// ==========================
-// Size Code
-// ==========================
-function generateSizeCode() {
-  const l = document.getElementById("length").value;
-  const w = document.getElementById("width").value;
-  const h = document.getElementById("height").value;
-  if (l && w && h) {
-    document.getElementById("sizeCode").value = `${l}x${w}x${h}`;
-  }
-}
-
-// ==========================
-// Part Number
-// ==========================
-async function generatePartNumber() {
-  const categoryId = document.getElementById("category").value;
-  const subCategoryId = document.getElementById("subCategory").value;
-  const productId = document.getElementById("productName").value;
-  const materialId = document.getElementById("material").value;
-  const size = document.getElementById("sizeCode").value;
-  const price = document.getElementById("price").value;
-
-  if (!categoryId || !subCategoryId || !productId || !materialId || !size) {
-    alert("Lengkapi semua field!");
-    return;
-  }
-
-  const { data, error } = await supabase.from("part_numbers").insert([
-    { category_id: categoryId, sub_category_id: subCategoryId, product_id: productId, material_id: materialId, size, price }
-  ]).select();
-
-  if (error) {
-    console.error("Insert error:", error);
-    alert("Gagal menyimpan data.");
-    return;
-  }
-
-  loadPartNumbers();
-
-  document.getElementById("result").style.display = "block";
-  document.getElementById("partNumber").value = `PN-${data[0].id}`;
-  document.getElementById("qrData").value = `PN-${data[0].id}`;
-  const qr = document.getElementById("qr-code");
-  qr.innerHTML = "";
-  new QRCode(qr, { text: `PN-${data[0].id}`, width: 150, height: 150 });
-}
-
-async function loadPartNumbers() {
-  const { data, error } = await supabase
-    .from("part_numbers")
-    .select(`
-      id, size, price,
-      categories (name),
-      sub_categories (name),
-      products (name),
-      materials (name)
-    `)
-    .order("id", { ascending: false });
-
-  if (error) {
-    console.error("Load error:", error);
-    return;
-  }
-  partNumberData = data;
-  updateTable();
-}
-
-function updateTable() {
-  const body = document.getElementById("tableBody");
-  body.innerHTML = "";
-  if (partNumberData.length === 0) {
-    body.innerHTML = `<tr><td colspan="8">Belum ada data</td></tr>`;
-    return;
-  }
-  partNumberData.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.id}</td>
-      <td>${item.categories?.name || "-"}</td>
-      <td>${item.sub_categories?.name || "-"}</td>
-      <td>${item.products?.name || "-"}</td>
-      <td>${item.materials?.name || "-"}</td>
-      <td>${item.size}</td>
-      <td>${item.price || "-"}</td>
-      <td><button onclick="deletePN(${item.id})">Delete</button></td>
-    `;
-    body.appendChild(tr);
-  });
-}
-
-async function deletePN(id) {
-  if (!confirm("Hapus data?")) return;
-  await supabase.from("part_numbers").delete().eq("id", id);
-  loadPartNumbers();
-}
-
-// ==========================
-// Login
-// ==========================
-function validateLogin() {
-  const u = document.getElementById("username").value;
-  const p = document.getElementById("password").value;
-  if (u === "Farrindo" && p === "Farrindo365") {
-    document.getElementById("loginModal").style.display = "none";
-    document.getElementById("mainContent").style.display = "block";
-    return false;
-  }
-  document.getElementById("loginError").style.display = "block";
-  return false;
-}
-
-// ==========================
-// Init
-// ==========================
-document.addEventListener("DOMContentLoaded", async () => {
-  updateJakartaClock();
-  await loadMasterData();
-  await loadPartNumbers();
+    if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+        localStorage.setItem('isLoggedIn', 'true');
+        window.location.href = 'part-number.html';
+    }
 });
 
+// Real-time input validation
+usernameInput.addEventListener('input', () => {
+    validateInput(usernameInput, usernameInput.value.trim() !== '', 'Username is required');
+});
 
+passwordInput.addEventListener('input', () => {
+    validateInput(passwordInput, passwordInput.value !== '', 'Password is required');
+});
+
+// Unit conversion with debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+const convertFromMM = debounce(() => {
+    const mm = parseFloat(mmInput.value);
+    if (!isNaN(mm) && mm >= 0) {
+        inchInput.value = (mm / 25.4).toFixed(2);
+        cmInput.value = (mm / 10).toFixed(2);
+    } else {
+        inchInput.value = '';
+        cmInput.value = '';
+    }
+}, 300);
+
+const convertFromInch = debounce(() => {
+    const inch = parseFloat(inchInput.value);
+    if (!isNaN(inch) && inch >= 0) {
+        mmInput.value = (inch * 25.4).toFixed(2);
+        cmInput.value = (inch * 2.54).toFixed(2);
+    } else {
+        mmInput.value = '';
+        cmInput.value = '';
+    }
+}, 300);
+
+const convertFromCM = debounce(() => {
+    const cm = parseFloat(cmInput.value);
+    if (!isNaN(cm) && cm >= 0) {
+        mmInput.value = (cm * 10).toFixed(2);
+        inchInput.value = (cm / 2.54).toFixed(2);
+    } else {
+        mmInput.value = '';
+        inchInput.value = '';
+    }
+}, 300);
+
+mmInput.addEventListener('input', convertFromMM);
+inchInput.addEventListener('input', convertFromInch);
+cmInput.addEventListener('input', convertFromCM);
+
+// Display Jakarta time
+function updateTime() {
+    const options = {
+        timeZone: 'Asia/Jakarta',
+        hour12: false,
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    };
+    timeZoneDiv.textContent = new Date().toLocaleString('en-US', options) + ' WIB';
+}
+
+updateTime();
+setInterval(updateTime, 1000);
+
+// Initial session check
+checkSession();
