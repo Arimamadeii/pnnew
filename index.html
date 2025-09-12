@@ -306,6 +306,7 @@
                             <h5 class="mb-0"><i class="bi bi-upc-scan"></i> Part Number Hasil</h5>
                         </div>
                         <div class="card-body text-center">
+                            <div id="qrCodeContainer"></div>
                             <div id="partNumberResult" class="part-number-display mb-3">
                                 -
                             </div>
@@ -738,19 +739,17 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
         // QR Code functions
         function generateQRCode(text) {
-            const ctx = qrCanvas.getContext('2d');
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-            
-            // Generate QR code
-            QRCode.toCanvas(qrCanvas, text, {
-                width: 200,
-                margin: 1,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                }
+    const qrContainer = document.getElementById("qrCodeContainer");
+    qrContainer.innerHTML = "";
+    new QRCode(qrContainer, {
+        text: text,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+}
             }, (error) => {
                 if (error) {
                     console.error('QR Code generation error:', error);
@@ -1795,6 +1794,7 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
 </body>
 
 </html>
+
 
 
 
