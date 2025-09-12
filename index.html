@@ -79,7 +79,16 @@
             padding: 15px;
             border-radius: 5px;
             margin-bottom: 20px;
+        } 
+        .navbar-brand img {
+        max-height: 40px;
+        width: auto;
         }
+        .login-container img {
+        max-height: 60px;
+        width: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -87,9 +96,18 @@
     <div id="loginScreen">
         <div class="login-container">
             <div class="text-center mb-4">
-                <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" alt="Farrindo Logo" class="img-fluid" style="max-height: 60px;">
-                <h3 class="mt-3">Sistem Part Number Filter</h3>
-            </div>
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" 
+             alt="Farrindo Logo" 
+             class="img-fluid me-3" 
+             style="max-height: 60px;">
+        <img src="https://drive.google.com/uc?export=view&id=1jcWJSJCZ2qm6URw3w7SGS2C9YzVwHSNz" 
+             alt="Custom Logo" 
+             class="img-fluid" 
+             style="max-height: 60px;">
+    </div>
+    <h3 class="mt-3">Sistem Part Number Filter</h3>
+</div>
             <form id="loginForm">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
@@ -107,9 +125,16 @@
     <div id="mainApp" style="display: none;">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="#">
-                    <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" alt="Farrindo Logo" height="30" class="d-inline-block align-text-top me-2">
-                    Sistem Part Number Filter
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                <img src="https://www.farrindo.co.id/wp-content/uploads/2023/08/135x20-logofarrindo2025atas.webp" 
+                 alt="Farrindo Logo" 
+                 height="40" 
+                 class="d-inline-block align-text-top me-2">
+                <img src="https://drive.google.com/uc?export=view&id=1jcWJSJCZ2qm6URw3w7SGS2C9YzVwHSNz" 
+                 alt="Custom Logo" 
+                 height="40" 
+                 class="d-inline-block align-text-top me-2">
+                <span>Sistem Part Number Farrindo Nusantara Industri</span>
                 </a>
                 <div class="navbar-nav ms-auto">
                     <span class="navbar-text time-display" id="currentTime"></span>
@@ -468,6 +493,13 @@
     <h5 class="mb-0"><i class="bi bi-table"></i> Review Semua Part Number</h5>
   </div>
   <div class="card-body">
+       <div class="d-flex mb-3">
+      <input type="text" id="searchPartNumberInput" class="form-control me-2" placeholder="Cari Part Number atau Produk...">
+      <button class="btn btn-primary" id="searchPartNumberBtn">
+        <i class="bi bi-search"></i> Cari
+      </button>
+    </div>
+      <!-- Tabel hasil -->
     <div class="table-responsive">
       <table class="table table-striped table-sm" id="partNumberTable">
         <thead>
@@ -1267,7 +1299,47 @@ async function loadPartNumberTable() {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat data</td></tr>';
     }
 }
+// Fungsi pencarian part number
+async function searchPartNumbers(keyword) {
+    const tbody = document.getElementById('partNumberTableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Mencari data...</td></tr>';
 
+    try {
+        let query = supabase.from('part_number_details').select('*').order('created_at', { ascending: false });
+
+        if (keyword && keyword.trim() !== "") {
+            query = query.or(`part_number.ilike.%${keyword}%,product_name.ilike.%${keyword}%`);
+        }
+
+        const { data, error } = await query.limit(50);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tidak ada hasil ditemukan</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row.part_number}</td>
+                <td>${row.category_code} - ${row.category_name}</td>
+                <td>${row.subcategory_code} - ${row.subcategory_name}</td>
+                <td>${row.product_code} - ${row.product_name}</td>
+                <td>${row.media_code} - ${row.media_name}</td>
+                <td>${row.dimension_code || ''} (${row.length_mm || ''}x${row.width_mm || ''}x${row.height_mm || ''}mm)</td>
+                <td>${new Date(row.created_at).toLocaleDateString('id-ID')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error('Error searching part numbers:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal mencari data</td></tr>';
+    }
+}
         // Fallback for recent part numbers
         async function loadRecentPartNumbersFallback() {
             try {
@@ -1515,25 +1587,38 @@ async function loadPartNumberTable() {
             saveProductBtn.addEventListener('click', saveProduct);
             saveMediaBtn.addEventListener('click', saveMedia);
 
-            // Modal event listeners
-            $('#addSubcategoryModal').on('shown.bs.modal', function () {
-                // Refresh category dropdown in modal
-                loadCategories();
-            });
+         // Modal event listeners (Vanilla JS)
+document.getElementById('addSubcategoryModal').addEventListener('shown.bs.modal', () => {
+    // Refresh category dropdown in modal
+    loadCategories();
+});
 
-            $('#addProductModal').on('shown.bs.modal', function () {
-                // Refresh subcategory dropdown in modal
-                if (modalSubcategorySelect.options.length <= 1) {
-                    loadProducts(subcategorySelect.value);
-                }
-            });
+document.getElementById('addProductModal').addEventListener('shown.bs.modal', () => {
+    // Refresh subcategory dropdown in modal
+    if (modalSubcategorySelect.options.length <= 1) {
+        loadProducts(subcategorySelect.value);
+    }
+});
 
-            $('#addMediaModal').on('shown.bs.modal', function () {
-                // Refresh subcategory dropdown in modal
-                if (modalMediaSubcategorySelect.options.length <= 1) {
-                    loadProducts(subcategorySelect.value);
-                }
-            });
+document.getElementById('addMediaModal').addEventListener('shown.bs.modal', () => {
+    // Refresh subcategory dropdown in modal
+    if (modalMediaSubcategorySelect.options.length <= 1) {
+        loadProducts(subcategorySelect.value);
+    }
+}); 
+// Tombol search part number
+document.getElementById('searchPartNumberBtn').addEventListener('click', () => {
+    const keyword = document.getElementById('searchPartNumberInput').value;
+    searchPartNumbers(keyword);
+});
+
+// Enter untuk pencarian cepat
+document.getElementById('searchPartNumberInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        searchPartNumbers(e.target.value);
+    }
+});
         }
 
         // Start the application
@@ -1542,5 +1627,6 @@ async function loadPartNumberTable() {
 </body>
 
 </html>
+
 
 
