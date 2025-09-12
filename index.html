@@ -6,7 +6,6 @@
     <title>Sistem Part Number Filter - Farrindo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -737,36 +736,36 @@ const supabase = createClient(supabaseUrl, supabaseKey);
         }
 
         // QR Code functions
-        function generateQRCode(text) {
-            const ctx = qrCanvas.getContext('2d');
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
-            
-            // Generate QR code
-            QRCode.toCanvas(qrCanvas, text, {
-                width: 200,
-                margin: 1,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                }
-            }, (error) => {
-                if (error) {
-                    console.error('QR Code generation error:', error);
-                } else {
-                    qrCode.style.display = 'block';
-                }
-            });
-        }
-
-        function downloadQRCode() {
-            const link = document.createElement('a');
-            link.download = `${currentPartNumber}_qrcode.png`;
-            link.href = qrCanvas.toDataURL('image/png');
-            link.click();
-        }
-
+  function generateQRCode(text) {
+    // Clear previous QR code
+    const qrContainer = document.getElementById('qrCode');
+    qrContainer.innerHTML = '';
+    
+    // Create new QR code
+    const qrCode = new QRCode(qrContainer, {
+        text: text,
+        width: 200,
+        height: 200,
+        colorDark: '#000000',
+        colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    
+    qrCode.makeCode(text);
+    qrContainer.style.display = 'block';
+}
+      function downloadQRCode() {
+    const qrCanvas = document.querySelector('#qrCode canvas');
+    if (!qrCanvas) {
+        alert('QR Code belum digenerate');
+        return;
+    }
+    
+    const link = document.createElement('a');
+    link.download = `${currentPartNumber}_qrcode.png`;
+    link.href = qrCanvas.toDataURL('image/png');
+    link.click();
+}
         // Dimensi code generation
         async function generateDimensionCode(productId, length, width, height) {
             try {
@@ -1057,18 +1056,21 @@ const supabase = createClient(supabaseUrl, supabaseKey);
                 await loadPartNumberDetails(partNumber);
                 
                 // Refresh recent part numbers
-                await loadRecentPartNumbers();
-
+               await loadPartNumberSummary();
+                await loadPartNumberTable();
                 alert(`Part Number berhasil dibuat: ${partNumber}`);
 
-            } catch (error) {
-                console.error('Error generating part number:', error);
-                alert('Gagal membuat part number: ' + error.message);
-            } finally {
-                hideLoading();
-            }
+           } catch (error) {
+        console.error('Error generating part number:', error);
+        if (error.code === '23505') {
+            alert('Error: Dimensi dengan ukuran yang sama sudah ada untuk produk ini.');
+        } else {
+            alert('Gagal membuat part number: ' + error.message);
         }
-
+    } finally {
+        hideLoading();
+    }
+}
         // Manual generate part number function
         async function manualGeneratePartNumber(
             categoryCode, 
@@ -1795,6 +1797,7 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
 </body>
 
 </html>
+
 
 
 
