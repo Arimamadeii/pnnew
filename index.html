@@ -101,7 +101,7 @@
              alt="Farrindo Logo" 
              class="img-fluid me-3" 
              style="max-height: 60px;">
-        <img src="https://drive.google.com/uc?export=view&id=1jcWJSJCZ2qm6URw3w7SGS2C9YzVwHSNz" 
+        <img src="https://raw.githubusercontent.com/Arimamadeii/pnnew/main/WhatsApp%20Image%202025-09-11%20at%2011.47.01.jpeg" 
              alt="Custom Logo" 
              class="img-fluid" 
              style="max-height: 60px;">
@@ -130,7 +130,7 @@
                  alt="Farrindo Logo" 
                  height="40" 
                  class="d-inline-block align-text-top me-2">
-                <img src="https://drive.google.com/uc?export=view&id=1jcWJSJCZ2qm6URw3w7SGS2C9YzVwHSNz" 
+                <img src="https://raw.githubusercontent.com/Arimamadeii/pnnew/main/WhatsApp%20Image%202025-09-11%20at%2011.47.01.jpeg" 
                  alt="Custom Logo" 
                  height="40" 
                  class="d-inline-block align-text-top me-2">
@@ -498,6 +498,9 @@
       <button class="btn btn-primary" id="searchPartNumberBtn">
         <i class="bi bi-search"></i> Cari
       </button>
+       <button class="btn btn-outline-secondary" id="resetSearchBtn">
+         <i class="bi bi-x-circle"></i> Reset
+  </button>
     </div>
       <!-- Tabel hasil -->
     <div class="table-responsive">
@@ -1339,6 +1342,13 @@ async function searchPartNumbers(keyword) {
         console.error('Error searching part numbers:', error);
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal mencari data</td></tr>';
     }
+} 
+// Reset pencarian (memulihkan tabel default)
+function resetSearch() {
+    const input = document.getElementById('searchPartNumberInput');
+    input.value = '';
+    // Muat ulang tabel default (mis. last 50)
+    loadPartNumberTable();
 }
         // Fallback for recent part numbers
         async function loadRecentPartNumbersFallback() {
@@ -1619,6 +1629,9 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
         searchPartNumbers(e.target.value);
     }
 });
+ // Tombol Reset
+    document.getElementById('resetSearchBtn').addEventListener('click', resetSearch);
+
         }
 
         // Start the application
@@ -1627,6 +1640,7 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
 </body>
 
 </html>
+
 
 
 
