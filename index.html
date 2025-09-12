@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         /* CSS styles remain the same as previous version */
         .card {
@@ -522,7 +523,27 @@
       </table>
     </div>
   </div>
+</div> 
+<!-- Modal detail Part Number -->
+<div class="modal fade" id="partNumberDetailModal" tabindex="-1" aria-labelledby="partNumberDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="partNumberDetailModalLabel">Detail Part Number</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="partNumberDetailContent">
+          <!-- Detail akan diisi via JS -->
+        </div>
+        <div class="text-center mt-3">
+          <div id="partNumberQrCode"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1302,7 +1323,7 @@ async function loadPartNumberTable() {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal memuat data</td></tr>';
     }
 }
-// Fungsi pencarian part number
+// Fungsi pencarian part number (versi baru dengan popup detail + QR)
 async function searchPartNumbers(keyword) {
     const tbody = document.getElementById('partNumberTableBody');
     tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Mencari data...</td></tr>';
@@ -1327,7 +1348,11 @@ async function searchPartNumbers(keyword) {
         data.forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${row.part_number}</td>
+                <td>
+                    <a href="#" class="part-number-link text-primary" data-part='${JSON.stringify(row)}'>
+                        ${row.part_number}
+                    </a>
+                </td>
                 <td>${row.category_code} - ${row.category_name}</td>
                 <td>${row.subcategory_code} - ${row.subcategory_name}</td>
                 <td>${row.product_code} - ${row.product_name}</td>
@@ -1338,11 +1363,48 @@ async function searchPartNumbers(keyword) {
             tbody.appendChild(tr);
         });
 
+        // Pasang event listener untuk setiap link part number
+        tbody.querySelectorAll('.part-number-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const row = JSON.parse(e.target.getAttribute('data-part'));
+                showPartNumberDetail(row);
+            });
+        });
+
     } catch (error) {
         console.error('Error searching part numbers:', error);
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Gagal mencari data</td></tr>';
     }
-} 
+}
+// Fungsi untuk menampilkan detail part number di modal + QR
+function showPartNumberDetail(row) {
+    const detailDiv = document.getElementById('partNumberDetailContent');
+    const qrDiv = document.getElementById('partNumberQrCode');
+
+    detailDiv.innerHTML = `
+        <p><strong>Part Number:</strong> ${row.part_number}</p>
+        <p><strong>Kategori:</strong> ${row.category_code} - ${row.category_name}</p>
+        <p><strong>Subkategori:</strong> ${row.subcategory_code} - ${row.subcategory_name}</p>
+        <p><strong>Produk:</strong> ${row.product_code} - ${row.product_name}</p>
+        <p><strong>Media:</strong> ${row.media_code} - ${row.media_name}</p>
+        <p><strong>Dimensi:</strong> ${row.dimension_code || ''} (${row.length_mm || ''}x${row.width_mm || ''}x${row.height_mm || ''}mm)</p>
+        <p><strong>Tanggal Buat:</strong> ${new Date(row.created_at).toLocaleString('id-ID')}</p>
+    `;
+
+    // Bersihkan QR lama
+    qrDiv.innerHTML = '';
+    // Generate QR baru untuk part number ini
+    new QRCode(qrDiv, {
+        text: row.part_number,
+        width: 128,
+        height: 128
+    });
+
+    // Tampilkan modal Bootstrap
+    const modal = new bootstrap.Modal(document.getElementById('partNumberDetailModal'));
+    modal.show();
+}
 // Reset pencarian (memulihkan tabel default)
 function resetSearch() {
     const input = document.getElementById('searchPartNumberInput');
@@ -1640,6 +1702,7 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
 </body>
 
 </html>
+
 
 
 
