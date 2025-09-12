@@ -103,7 +103,31 @@
             </form>
         </div>
     </div>
-
+<div class="card mt-4">
+  <div class="card-header bg-secondary text-white">
+    <h5 class="mb-0"><i class="bi bi-table"></i> Review Semua Part Number</h5>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped table-sm" id="partNumberTable">
+        <thead>
+          <tr>
+            <th>Part Number</th>
+            <th>Kategori</th>
+            <th>Subkategori</th>
+            <th>Produk</th>
+            <th>Media</th>
+            <th>Dimensi</th>
+            <th>Tanggal</th>
+          </tr>
+        </thead>
+        <tbody id="partNumberTableBody">
+          <tr><td colspan="7" class="text-center text-muted">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
     <!-- Main Application (Hidden Initially) -->
     <div id="mainApp" style="display: none;">
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -1300,32 +1324,6 @@ async function loadPartNumberTable() {
             });
             html += '</div>';
             recentPartNumbers.innerHTML = html;
-<div class="card mt-4">
-  <div class="card-header bg-secondary text-white">
-    <h5 class="mb-0"><i class="bi bi-table"></i> Review Semua Part Number</h5>
-  </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-striped table-sm" id="partNumberTable">
-        <thead>
-          <tr>
-            <th>Part Number</th>
-            <th>Kategori</th>
-            <th>Subkategori</th>
-            <th>Produk</th>
-            <th>Media</th>
-            <th>Dimensi</th>
-            <th>Tanggal</th>
-          </tr>
-        </thead>
-        <tbody id="partNumberTableBody">
-          <tr><td colspan="7" class="text-center text-muted">Memuat data...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
         }
 
         // Save subcategory function
@@ -1545,3 +1543,4 @@ async function loadPartNumberTable() {
 </body>
 
 </html>
+
