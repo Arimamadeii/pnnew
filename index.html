@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* CSS styles remain the same as previous version */
         .card {
@@ -335,7 +336,24 @@
             </div>
         </div>
     </div>
-
+<!-- Summary Part Number -->
+<div class="card mt-4">
+  <div class="card-header bg-info text-white">
+    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Statistik Part Number</h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <h6 class="text-center">Total per Kategori</h6>
+        <canvas id="partNumberTotalChart"></canvas>
+      </div>
+      <div class="col-md-6">
+        <h6 class="text-center">Penambahan Hari Ini</h6>
+        <canvas id="partNumberTodayChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- Loading Indicator -->
     <div class="loading" id="loading">
         <div class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999;">
@@ -1412,6 +1430,79 @@ function resetSearch() {
     // Muat ulang tabel default (mis. last 50)
     loadPartNumberTable();
 }
+        // Fungsi load summary part number + render chart
+let totalChart = null;
+let todayChart = null;
+
+async function loadPartNumberSummary() {
+    const { data, error } = await supabase
+        .from('part_number_details')
+        .select('category_name, created_at');
+
+    if (error) {
+        console.error('Error load summary:', error);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        console.log('Tidak ada data part number');
+        return;
+    }
+
+    const totalByCategory = {};
+    const todayByCategory = {};
+    const todayDate = new Date().toISOString().split('T')[0];
+
+    data.forEach(row => {
+        const cat = row.category_name || "Lainnya";
+        totalByCategory[cat] = (totalByCategory[cat] || 0) + 1;
+        if (row.created_at.startsWith(todayDate)) {
+            todayByCategory[cat] = (todayByCategory[cat] || 0) + 1;
+        }
+    });
+
+    const categories = Object.keys(totalByCategory);
+    const totalValues = categories.map(c => totalByCategory[c]);
+    const todayValues = categories.map(c => todayByCategory[c] || 0);
+
+    if (totalChart) totalChart.destroy();
+    if (todayChart) todayChart.destroy();
+
+    const ctxTotal = document.getElementById('partNumberTotalChart').getContext('2d');
+    totalChart = new Chart(ctxTotal, {
+        type: 'pie',
+        data: {
+            labels: categories,
+            datasets: [{
+                data: totalValues,
+                backgroundColor: ['#007bff','#28a745','#ffc107','#dc3545','#17a2b8','#6f42c1'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    const ctxToday = document.getElementById('partNumberTodayChart').getContext('2d');
+    todayChart = new Chart(ctxToday, {
+        type: 'bar',
+        data: {
+            labels: categories,
+            datasets: [{
+                label: 'Hari ini',
+                data: todayValues,
+                backgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
         // Fallback for recent part numbers
         async function loadRecentPartNumbersFallback() {
             try {
@@ -1693,7 +1784,9 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
 });
  // Tombol Reset
     document.getElementById('resetSearchBtn').addEventListener('click', resetSearch);
-
+ // Load data awal 
+    loadPartNumberTable();
+    loadPartNumberSummary();
         }
 
         // Start the application
@@ -1702,6 +1795,7 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
 </body>
 
 </html>
+
 
 
 
