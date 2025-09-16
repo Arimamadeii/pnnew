@@ -89,7 +89,29 @@
         max-height: 60px;
         width: auto;
         }
-
+        .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+        }
+        .chart-legend {
+        font-size: 0.8rem;
+        }
+        .stats-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .dimensionsTable {
+    font-size: 0.9rem;
+}
+        .dimensionsTable th {
+    background-color: #0d6efd;
+    color: white;
+}
+.dimensionList tr:hover {
+    background-color: #f8f9fa;
+}
     </style>
 </head>
 <body>
@@ -274,6 +296,12 @@
                     <!-- Admin Panel -->
                     <div class="admin-panel">
                         <h5><i class="bi bi-shield-lock"></i> Panel Admin</h5>
+                          <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Kelola Data Master</span>
+                            <button class="btn btn-sm btn-outline-primary" id="refreshDataBtn">
+                              <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                            </button>
+                          </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <button class="btn btn-outline-secondary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#addSubcategoryModal">
@@ -337,18 +365,40 @@
     </div>
 <!-- Summary Part Number -->
 <div class="card mt-4">
-  <div class="card-header bg-info text-white">
+  <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
     <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Statistik Part Number</h5>
+    <button class="btn btn-sm btn-light" id="refreshStatsBtn">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
   </div>
   <div class="card-body">
     <div class="row">
       <div class="col-md-6">
-        <h6 class="text-center">Total per Kategori</h6>
-        <canvas id="partNumberTotalChart"></canvas>
+        <div class="card mb-3">
+          <div class="card-header bg-primary text-white text-center py-2">
+            <h6 class="mb-0">Total per Kategori</h6>
+          </div>
+          <div class="card-body">
+            <canvas id="partNumberTotalChart" height="250"></canvas>
+          </div>
+        </div>
       </div>
       <div class="col-md-6">
-        <h6 class="text-center">Penambahan Hari Ini</h6>
-        <canvas id="partNumberTodayChart"></canvas>
+        <div class="card mb-3">
+          <div class="card-header bg-success text-white text-center py-2">
+            <h6 class="mb-0">Penambahan Hari Ini</h6>
+          </div>
+          <div class="card-body">
+            <canvas id="partNumberTodayChart" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col-12">
+        <div class="alert alert-info py-2">
+          <small><i class="bi bi-info-circle"></i> Klik pada chart untuk melihat detail kategori</small>
+        </div>
       </div>
     </div>
   </div>
@@ -483,29 +533,98 @@
     </div>
 
     <div class="modal fade" id="manageDimensionsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Kelola Dimensi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Pilih Produk</label>
-                        <select class="form-select" id="dimensionProductSelect">
-                            <option value="">Pilih Produk</option>
-                        </select>
-                    </div>
-                    <div id="dimensionList" class="mt-3">
-                        <p>Pilih produk untuk melihat daftar dimensi</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Kelola Dimensi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Pilih Produk</label>
+            <select class="form-select" id="dimensionProductSelect">
+              <option value="">Pilih Produk</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Aksi</label>
+            <div>
+              <button class="btn btn-sm btn-outline-primary" id="loadDimensionsBtn">
+                <i class="bi bi-search"></i> Muat Dimensi
+              </button>
+              <button class="btn btn-sm btn-outline-success" id="addDimensionBtn" data-bs-toggle="modal" data-bs-target="#addDimensionModal">
+                <i class="bi bi-plus"></i> Tambah Baru
+              </button>
             </div>
+          </div>
         </div>
+        
+        <div class="table-responsive mt-3">
+          <table class="table table-sm table-striped" id="dimensionsTable">
+            <thead class="table-dark">
+              <tr>
+                <th>Kode</th>
+                <th>Panjang (mm)</th>
+                <th>Lebar (mm)</th>
+                <th>Tinggi (mm)</th>
+                <th>Deskripsi</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="dimensionList">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  Pilih produk dan klik 'Muat Dimensi' untuk melihat data
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- Modal Tambah Dimensi -->
+<div class="modal fade" id="addDimensionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Dimensi Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addDimensionForm">
+          <input type="hidden" id="dimensionProductId">
+          <div class="mb-3">
+            <label class="form-label">Panjang (mm)</label>
+            <input type="number" class="form-control" id="newLength" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Lebar (mm)</label>
+            <input type="number" class="form-control" id="newWidth" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tinggi (mm)</label>
+            <input type="number" class="form-control" id="newHeight" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Deskripsi (opsional)</label>
+            <textarea class="form-control" id="newDescription" rows="2"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="saveDimensionBtn">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="card mt-4">
   <div class="card-header bg-secondary text-white">
     <h5 class="mb-0"><i class="bi bi-table"></i> Review Semua Part Number</h5>
@@ -767,35 +886,35 @@ const supabase = createClient(supabaseUrl, supabaseKey);
     link.click();
 }
         // Dimensi code generation
-        async function generateDimensionCode(productId, length, width, height) {
-            try {
-                // Cari dimensi yang sudah ada untuk produk ini
-                const { data: existingDimensions, error } = await supabase
-                    .from('dimensions')
-                    .select('code')
-                    .eq('product_id', productId)
-                    .order('code', { ascending: false })
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Error fetching dimensions:', error);
-                    return `A001`; // Default jika error
-                }
-                
-                if (existingDimensions && existingDimensions.length > 0) {
-                    // Ambil angka dari kode terakhir (A001 -> 1)
-                    const lastCode = existingDimensions[0].code;
-                    const lastNumber = parseInt(lastCode.substring(1)) || 0;
-                    const nextNumber = lastNumber + 1;
-                    return `A${nextNumber.toString().padStart(3, '0')}`;
-                } else {
-                    return `A001`; // Default jika belum ada dimensi
-                }
-            } catch (error) {
-                console.error('Error generating dimension code:', error);
-                return `A001`; // Default jika error
-            }
+       async function generateDimensionCode(productId, length, width, height) {
+    try {
+        // Cari dimensi yang sudah ada untuk produk ini
+        const { data: existingDimensions, error } = await supabase
+            .from('dimensions')
+            .select('code')
+            .eq('product_id', productId)
+            .order('code', { ascending: false })
+            .limit(1);
+
+        if (error) {
+            console.error('Error fetching dimensions:', error);
+            return `A001`; // Default jika error
         }
+        
+        if (existingDimensions && existingDimensions.length > 0) {
+            // Ambil angka dari kode terakhir (A001 -> 1)
+            const lastCode = existingDimensions[0].code;
+            const lastNumber = parseInt(lastCode.substring(1)) || 0;
+            const nextNumber = lastNumber + 1;
+            return `A${nextNumber.toString().padStart(3, '0')}`;
+        } else {
+            return `A001`; // Default jika belum ada dimensi
+        }
+    } catch (error) {
+        console.error('Error generating dimension code:', error);
+        return `A001`; // Default jika error
+    }
+}
 
         // Load categories function
         async function loadCategories() {
@@ -1689,7 +1808,183 @@ async function loadPartNumberSummary() {
                 alert('Gagal menambahkan media: ' + error.message);
             }
         }
+// Fungsi Refresh Data
+async function refreshAllData() {
+    showLoading();
+    try {
+        await Promise.all([
+            loadCategories(),
+            loadSubcategories(categorySelect.value),
+            loadProducts(subcategorySelect.value),
+            loadMedia(subcategorySelect.value),
+            loadPartNumberTable(),
+            loadPartNumberSummary()
+        ]);
+        alert('Data berhasil di-refresh');
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+        alert('Gagal refresh data');
+    } finally {
+        hideLoading();
+    }
+}
 
+// Fungsi Load Dimensi
+async function loadDimensions(productId) {
+    showLoading();
+    try {
+        const { data, error } = await supabase
+            .from('dimensions')
+            .select(`
+                *,
+                products (
+                    name,
+                    code
+                )
+            `)
+            .eq('product_id', productId)
+            .order('code');
+
+        if (error) throw error;
+
+        const tbody = document.getElementById('dimensionList');
+        tbody.innerHTML = '';
+
+        if (data && data.length > 0) {
+            data.forEach(dim => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${dim.code}</strong></td>
+                    <td>${dim.length_mm || '-'}</td>
+                    <td>${dim.width_mm || '-'}</td>
+                    <td>${dim.height_mm || '-'}</td>
+                    <td><small>${dim.description || 'Tidak ada deskripsi'}</small></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteDimension(${dim.id})">
+                            <i class="bi bi-trash"></i> Hapus
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox"></i><br>
+                        Tidak ada data dimensi untuk produk ini
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading dimensions:', error);
+        const tbody = document.getElementById('dimensionList');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-danger py-3">
+                    <i class="bi bi-exclamation-triangle"></i><br>
+                    Gagal memuat data dimensi: ${error.message}
+                </td>
+            </tr>
+        `;
+    } finally {
+        hideLoading();
+    }
+}
+        // Fungsi Hapus Dimensi
+async function deleteDimension(dimensionId) {
+    if (!confirm('Apakah Anda yakin ingin menghapus dimensi ini?')) {
+        return;
+    }
+
+    showLoading();
+    try {
+        const { error } = await supabase
+            .from('dimensions')
+            .delete()
+            .eq('id', dimensionId);
+
+        if (error) throw error;
+
+        alert('Dimensi berhasil dihapus');
+        
+        // Reload dimensions list
+        const productId = document.getElementById('dimensionProductSelect').value;
+        if (productId) {
+            await loadDimensions(productId);
+        }
+    } catch (error) {
+        console.error('Error deleting dimension:', error);
+        
+        // Cek jika error karena constraint foreign key
+        if (error.message.includes('foreign key constraint')) {
+            alert('Tidak dapat menghapus dimensi karena sudah digunakan dalam part number. Hapus part number yang terkait terlebih dahulu.');
+        } else {
+            alert('Gagal menghapus dimensi: ' + error.message);
+        }
+    } finally {
+        hideLoading();
+    }
+}
+// Fungsi Tambah Dimensi
+async function addNewDimension() {
+    const productId = document.getElementById('dimensionProductId').value;
+    const length = parseInt(document.getElementById('newLength').value);
+    const width = parseInt(document.getElementById('newWidth').value);
+    const height = parseInt(document.getElementById('newHeight').value);
+    const description = document.getElementById('newDescription').value;
+
+    if (!productId) {
+        alert('Pilih produk terlebih dahulu');
+        return;
+    }
+
+    if (!length || !width || !height) {
+        alert('Harap isi semua field dimensi (panjang, lebar, tinggi)');
+        return;
+    }
+
+    showLoading();
+    try {
+        // Generate kode dimensi
+        const dimensionCode = await generateDimensionCode(productId, length, width, height);
+
+        const { error } = await supabase
+            .from('dimensions')
+            .insert({
+                product_id: productId,
+                code: dimensionCode,
+                length_mm: length,
+                width_mm: width,
+                height_mm: height,
+                description: description
+            });
+
+        if (error) {
+            // Cek jika error karena constraint unique
+            if (error.message.includes('unique_dimension_per_product')) {
+                throw new Error('Dimensi dengan ukuran yang sama sudah ada untuk produk ini');
+            }
+            throw error;
+        }
+
+        alert(`Dimensi berhasil ditambahkan dengan kode: ${dimensionCode}`);
+        $('#addDimensionModal').modal('hide');
+        
+        // Reset form
+        document.getElementById('addDimensionForm').reset();
+        
+        // Reload dimensions list
+        await loadDimensions(productId);
+        
+    } catch (error) {
+        console.error('Error adding dimension:', error);
+        alert('Gagal menambahkan dimensi: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
         // Initialize the application
         function init() {
             setupLogin();
@@ -1790,13 +2085,67 @@ document.getElementById('searchPartNumberInput').addEventListener('keypress', (e
     loadPartNumberTable();
     loadPartNumberSummary();
         }
+// Event Listeners - Tambahkan di fungsi init()
+document.getElementById('refreshDataBtn').addEventListener('click', refreshAllData);
+document.getElementById('refreshStatsBtn').addEventListener('click', loadPartNumberSummary);
+document.getElementById('loadDimensionsBtn').addEventListener('click', () => {
+    const productId = document.getElementById('dimensionProductSelect').value;
+    if (productId) {
+        document.getElementById('dimensionProductId').value = productId;
+        loadDimensions(productId);
+    } else {
+        alert('Pilih produk terlebih dahulu');
+    }
+});
+document.getElementById('saveDimensionBtn').addEventListener('click', addNewDimension);
+        // Event Listeners untuk Kelola Dimensi
+document.getElementById('loadDimensionsBtn').addEventListener('click', () => {
+    const productId = document.getElementById('dimensionProductSelect').value;
+    if (productId) {
+        document.getElementById('dimensionProductId').value = productId;
+        loadDimensions(productId);
+    } else {
+        alert('Pilih produk terlebih dahulu');
+    }
+});
 
+document.getElementById('saveDimensionBtn').addEventListener('click', addNewDimension);
+
+// Reset form ketika modal tambah dimensi ditutup
+document.getElementById('addDimensionModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('addDimensionForm').reset();
+});
+
+// Load products untuk dropdown dimensi ketika modal dibuka
+document.getElementById('manageDimensionsModal').addEventListener('show.bs.modal', async function () {
+    try {
+        const { data: products, error } = await supabase
+            .from('products')
+            .select('id, code, name')
+            .order('code');
+
+        if (error) throw error;
+
+        const select = document.getElementById('dimensionProductSelect');
+        select.innerHTML = '<option value="">Pilih Produk</option>';
+        
+        products.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.id;
+            option.textContent = `${product.code} - ${product.name}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading products for dimensions:', error);
+    }
+});
         // Start the application
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 
 </html>
+
 
 
 
